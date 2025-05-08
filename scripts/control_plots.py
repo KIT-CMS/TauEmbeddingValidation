@@ -7,6 +7,7 @@ import numpy as np
 
 from helper import initialize_dir
 from plotting import control_plot, q_comparison
+from importer import verify_events
 
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
@@ -25,7 +26,9 @@ data_df = pd.read_hdf(hdf_path, "data_df")
 emb_df = pd.read_hdf(hdf_path, "emb_df")
 matched_emb_df = pd.read_hdf(hdf_path, "emb_df_matched")
 
-print("Data loaded")
+verify_events(data_df, emb_df, matched_emb_df)
+
+print("Data loaded and verified")
 
 
 plotting_instructions = [

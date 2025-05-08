@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import calculate_dr, get_closest_muon_data
+from importer import calculate_dr, get_closest_muon_data, verify_events
 from plotting import histogram, q_comparison
 from helper import initialize_dir
 
@@ -22,7 +22,9 @@ print("Directory initialized")
 data_df = pd.read_hdf(hdf_path, "data_df")
 emb_df = pd.read_hdf(hdf_path, "emb_df")
 
-print("Data loaded")
+verify_events(data_df, emb_df)
+
+print("Data loaded and verified")
 
 
 dr_unfiltered = calculate_dr(data_df, emb_df, 2, 5, filter=False)

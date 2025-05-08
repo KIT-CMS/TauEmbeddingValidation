@@ -200,3 +200,11 @@ def get_closest_muon_data(dr_arr):
     return index, mu_dr
 
 
+def verify_events(*data):
+
+    master_df = data[0]
+
+    for df in data:
+        compare_cells(master_df["event"].values, df["event"].values)
+        compare_cells(master_df["lumi"].values, df["lumi"].values)
+        compare_cells(master_df["run"].values, df["run"].values)
