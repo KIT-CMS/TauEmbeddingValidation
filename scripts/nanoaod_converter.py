@@ -1,0 +1,82 @@
+import uproot
+import os
+import mplhep as hep
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+from importer import nanoaod_to_dataframe, compare_cells, generate_m_vis, generate_pt_vis, calculate_dr, apply_genmatching, get_closest_muon_data
+
+
+data_path = "./data/2022G-nanoaod/2022G-data.root"
+emb_path = "./data/2022G-nanoaod/2022G-emb.root"
+
+output_path = "./data/converted"
+
+quantities = [
+    {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
+    {"key":"PuppiMET_phi",      "target":"PuppiMET_phi",    "expand":False},
+    {"key":"PuppiMET_sumEt",    "target":"PuppiMET_sumEt",  "expand":False},
+    {"key":"Muon_phi",          "target":"phi",             "expand":True},
+    {"key":"Muon_pt",           "target":"pt",              "expand":True},
+    {"key":"Muon_eta",          "target":"eta",             "expand":True},
+    {"key":"Muon_mass",         "target":"m",               "expand":True},
+    {"key":"Jet_phi",           "target":"Jet_phi",         "expand":False},
+    {"key":"Jet_pt",            "target":"Jet_pt",          "expand":False},
+    {"key":"Jet_eta",           "target":"Jet_eta",         "expand":False},
+    {"key":"Jet_mass",          "target":"Jet_mass",        "expand":False},
+    {"key":"run",               "target":"run",             "expand":False},
+    {"key":"luminosityBlock",   "target":"lumi",            "expand":False},
+    {"key":"event",             "target":"event",           "expand":False}
+]
+
+print("Loading data")
+
+
+data_df = nanoaod_to_dataframe(data_path=data_path, quantities=quantities)
+emb_df = nanoaod_to_dataframe(data_path=emb_path, quantities=quantities)
+
+print("Data loaded")
+
+
+data_df = data_df.sort_values(by=["run", "lumi", "event"], ignore_index=True)
+emb_df = emb_df.sort_values(by=["run", "lumi", "event"], ignore_index=True)
+
+compare_cells(data_df["event"].values, emb_df["event"].values)
+compare_cells(data_df["lumi"].values, emb_df["lumi"].values)
+compare_cells(data_df["run"].values, emb_df["run"].values)
+
+print("Data ok")
+
+
+data_df["pt_vis"] = generate_pt_vis(pt_1=data_df["pt_1"], eta_1=data_df["eta_1"], phi_1=data_df["phi_1"],m_1=data_df["m_1"], 
+                                    pt_2=data_df["pt_2"], eta_2=data_df["eta_2"], phi_2=data_df["phi_2"],m_2=data_df["m_2"])
+emb_df["pt_vis"] =  generate_pt_vis(pt_1=emb_df["pt_1"], eta_1=emb_df["eta_1"], phi_1=emb_df["phi_1"],m_1=emb_df["m_1"], 
+                                    pt_2=emb_df["pt_2"], eta_2=emb_df["eta_2"], phi_2=emb_df["phi_2"],m_2=emb_df["m_2"])
+data_df["m_vis"] =  generate_m_vis( pt_1=data_df["pt_1"], eta_1=data_df["eta_1"], phi_1=data_df["phi_1"],m_1=data_df["m_1"], 
+                                    pt_2=data_df["pt_2"], eta_2=data_df["eta_2"], phi_2=data_df["phi_2"],m_2=data_df["m_2"])
+emb_df["m_vis"] =   generate_m_vis( pt_1=emb_df["pt_1"], eta_1=emb_df["eta_1"], phi_1=emb_df["phi_1"],m_1=emb_df["m_1"], 
+                                    pt_2=emb_df["pt_2"], eta_2=emb_df["eta_2"], phi_2=emb_df["phi_2"],m_2=emb_df["m_2"])
+
+print("Additional variables created")
+
+
+dr = calculate_dr(data_df, emb_df, 2, 5, filter=False)
+emb_df_matched = apply_genmatching(dr.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
+
+print("Genmatching applied")
+
+
+store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
+store.put("data_df", data_df, index=False)
+store.put("emb_df", emb_df, index=False)
+store.put("emb_df_matched", emb_df_matched, index=False)
+store.close()
+
+print("Data stored in hdf store")
+
+
+# hdf_path = "./data/converted/converted_nanoaod.h5"
+# data_df = pd.read_hdf(hdf_path, "data_df")
+# emb_df = pd.read_hdf(hdf_path, "emb_df")
+
