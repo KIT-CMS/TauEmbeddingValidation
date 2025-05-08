@@ -50,8 +50,8 @@ def control_plot(data_col, emb_col, bins, title):
     plt.sca(ax[1])
     ax_temp = ax[1]
 
-    rel_diff = data_hist/ emb_hist
-    rel_diff_error = data_errors/ emb_hist
+    rel_diff = divide_arrays(data_hist, emb_hist)
+    rel_diff_error = divide_arrays(data_errors, emb_hist)
 
     ax_temp.errorbar(bins_data_center, rel_diff, xerr=np.diff(edges)/2, yerr=rel_diff_error, label="observed", c="black", fmt="o", linestyle="none", markersize=8)
     ax_temp.bar(bins_data_center, 2*rel_diff_error, width=np.diff(edges), bottom=1-rel_diff_error, color="grey", alpha=0.5, edgecolor="none")
@@ -65,7 +65,17 @@ def control_plot(data_col, emb_col, bins, title):
 
     return ax
 
+def divide_arrays(numerator, denominator):
+    #divides numerator by denominator while avoiding division by zero errors
+    
+    result = np.full_like(numerator, np.nan, float)
+    nan_mask = np.logical_and(~np.isnan(denominator), ~np.isnan(numerator))
+    non_zero_mask = denominator!=0 
+    mask = np.logical_and(nan_mask, non_zero_mask)
 
+    result[mask] = numerator[mask]/ denominator[mask]
+
+    return result
 
 def histogram(quantity, bins, title):
     """subtracts both columns from each other and plots them in a histogram"""
@@ -120,8 +130,8 @@ def q_comparison(col1, col2, bins, col1_label, col2_label, title):
     plt.sca(ax[1])
     ax_temp = ax[1]
 
-    rel_difference = hist1/ hist2
-    rel_difference_errors = np.sqrt(hist1)/ hist2
+    rel_difference = divide_arrays(hist1, hist2)
+    rel_difference_errors = divide_arrays(np.sqrt(hist1), hist2)
     bins_data_center = get_bin_center(edges)
 
     # ax_temp.hist(rel_difference, bins, histtype="step", linewidth=2, color="black")

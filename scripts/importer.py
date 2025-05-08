@@ -71,7 +71,52 @@ def compare_cells(column1, column2):
     test = column1 - column2
     assert len(test[test!=0]) == 0, "Mismatch"
 
+
+get_nth_element = np.vectorize(get_nth_element, otypes=[np.float32]) #function that extracts the 1st element of a subarray for flattening the data
+get_subarray_length = np.vectorize(get_subarray_length, otypes=[np.int32]) #function that extracts the 1st element of a subarray for flattening the data
+
+
+def get_z_m_pt(df):
+    #finds for each event the muon pair that fits best to the z boson mass. returns arrays with the mass and pt of the best fitting pair
+    m_z = 91.1880
+    m_vis = np.full(len(df), np.nan)
+    pt_vis = np.full(len(df), np.nan)
+    n_muon = get_nmuon(df, "eta_")
+
+    for n_event in range(len(df)):
+        row = df.iloc[n_event]
+        best_m_vis = -1.
+        best_pt_vis = -1.
+        for n1 in range(1, n_muon+1):
+            for n2 in range(1, n_muon+1):
+                m_vis = generate_m_vis(row[f"pt_{n1}"], row[f"eta_{n1}"], row[f"phi_{n1}"], row[f"m_{n1}"], row[f"pt_{n2}"], row[f"eta_{n2}"], row[f"phi_{n2}"], row[f"m_{n2}"])
+                pt_vis = generate_pt_vis(row[f"pt_{n1}"], row[f"eta_{n1}"], row[f"phi_{n1}"], row[f"m_{n1}"], row[f"pt_{n2}"], row[f"eta_{n2}"], row[f"phi_{n2}"], row[f"m_{n2}"])
+
+                if abs(m_z-m_vis) < abs(m_z-best_m_vis):
+                    best_m_vis = m_vis
+                    best_pt_vis = pt_vis
+
+        if best_m_vis != -1.:
+            m_vis[n_event] = best_m_vis
+        if best_pt_vis != -1.:
+            pt_vis[n_event] = best_pt_vis
+    
+    return m_vis, pt_vis
+
+
+def get_nmuon(df, column):
+    #returns the number of muons that is available in the dataset (the highest index that can be found behind the column base name)
+    max_n = 0
+    for col in df.columns:
+        if col.startswith(column):
+            n = col.rsplit("_", 1)[1]
+            n = int(n)
+            if n > max_n:
+                max_n = n
+    return max_n
+
 def generate_m_vis(pt_1, eta_1, phi_1, m_1, pt_2, eta_2, phi_2, m_2):
+    #calculates m_vis of a muon pair
     p4_1 = vector.MomentumObject4D(pt=pt_1, phi=phi_1, eta=eta_1, mass=m_1)
     p4_2 = vector.MomentumObject4D(pt=pt_2, phi=phi_2, eta=eta_2, mass=m_2)
     p4_vis = p4_1 + p4_2
@@ -80,17 +125,13 @@ def generate_m_vis(pt_1, eta_1, phi_1, m_1, pt_2, eta_2, phi_2, m_2):
     return m_vis
 
 def generate_pt_vis(pt_1, eta_1, phi_1, m_1, pt_2, eta_2, phi_2, m_2):
+    #calculates pt_vis of a muon pair
     p4_1 = vector.MomentumObject4D(pt=pt_1, phi=phi_1, eta=eta_1, mass=m_1)
     p4_2 = vector.MomentumObject4D(pt=pt_2, phi=phi_2, eta=eta_2, mass=m_2)
     p4_vis = p4_1 + p4_2
     pt_vis = p4_vis.pt
 
     return pt_vis
-
-get_nth_element = np.vectorize(get_nth_element, otypes=[np.float32]) #function that extracts the 1st element of a subarray for flattening the data
-get_subarray_length = np.vectorize(get_subarray_length, otypes=[np.int32]) #function that extracts the 1st element of a subarray for flattening the data
-# generate_pt_vis = np.vectorize(generate_pt_vis, otypes=[np.float32])
-# generate_m_vis = np.vectorize(generate_m_vis, otypes=[np.float32])
 
 
 

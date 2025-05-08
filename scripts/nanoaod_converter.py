@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import nanoaod_to_dataframe, compare_cells, generate_m_vis, generate_pt_vis, calculate_dr, apply_genmatching, get_closest_muon_data
+from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, calculate_dr, apply_genmatching
 
 
 data_path = "./data/2022G-nanoaod/2022G-data.root"
@@ -49,16 +49,10 @@ compare_cells(data_df["run"].values, emb_df["run"].values)
 print("Data ok")
 
 
-data_df["pt_vis"] = generate_pt_vis(pt_1=data_df["pt_1"], eta_1=data_df["eta_1"], phi_1=data_df["phi_1"],m_1=data_df["m_1"], 
-                                    pt_2=data_df["pt_2"], eta_2=data_df["eta_2"], phi_2=data_df["phi_2"],m_2=data_df["m_2"])
-emb_df["pt_vis"] =  generate_pt_vis(pt_1=emb_df["pt_1"], eta_1=emb_df["eta_1"], phi_1=emb_df["phi_1"],m_1=emb_df["m_1"], 
-                                    pt_2=emb_df["pt_2"], eta_2=emb_df["eta_2"], phi_2=emb_df["phi_2"],m_2=emb_df["m_2"])
-data_df["m_vis"] =  generate_m_vis( pt_1=data_df["pt_1"], eta_1=data_df["eta_1"], phi_1=data_df["phi_1"],m_1=data_df["m_1"], 
-                                    pt_2=data_df["pt_2"], eta_2=data_df["eta_2"], phi_2=data_df["phi_2"],m_2=data_df["m_2"])
-emb_df["m_vis"] =   generate_m_vis( pt_1=emb_df["pt_1"], eta_1=emb_df["eta_1"], phi_1=emb_df["phi_1"],m_1=emb_df["m_1"], 
-                                    pt_2=emb_df["pt_2"], eta_2=emb_df["eta_2"], phi_2=emb_df["phi_2"],m_2=emb_df["m_2"])
+data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
+emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
 
-print("Additional variables created")
+print("Added m_vis and pt_vis")
 
 
 dr = calculate_dr(data_df, emb_df, 2, 5, filter=False)
