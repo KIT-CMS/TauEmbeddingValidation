@@ -30,7 +30,7 @@ print("Data loaded and verified")
 dr_unfiltered = calculate_dr(data_df, emb_df, 2, 5, filter=False)
 dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=True)
 
-ax = q_comparison(dr_filtered[:,0,0], dr_unfiltered[:,0,0], 25, r"$\Delta r_\text{filtered}$", r"$\Delta r_\text{unfiltered}$", r"$\Delta r$")
+ax = q_comparison(dr_filtered[:,0,0], dr_unfiltered[:,0,0], np.linspace(0,6), r"$\Delta r_\text{filtered}$", r"$\Delta r_\text{unfiltered}$", r"$\Delta r$")
 ax[0].set_yscale("log")
 plt.savefig(os.path.join(dr_plot_path, f"dr_comparison.png"))
 plt.close()

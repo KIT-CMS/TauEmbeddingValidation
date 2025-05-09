@@ -79,27 +79,29 @@ get_subarray_length = np.vectorize(get_subarray_length, otypes=[np.int32]) #func
 def get_z_m_pt(df):
     #finds for each event the muon pair that fits best to the z boson mass. returns arrays with the mass and pt of the best fitting pair
     m_z = 91.1880
-    m_vis = np.full(len(df), np.nan)
-    pt_vis = np.full(len(df), np.nan)
     n_muon = get_nmuon(df, "eta_")
+    n_events = len(df)
+    m_vis = np.full((n_events,n_muon,n_muon), np.nan)
+    pt_vis = np.full((n_events,n_muon,n_muon), np.nan)
 
-    for n_event in range(len(df)):
-        row = df.iloc[n_event]
-        best_m_vis = -1.
-        best_pt_vis = -1.
-        for n1 in range(1, n_muon+1):
-            for n2 in range(1, n_muon+1):
-                m_vis = generate_m_vis(row[f"pt_{n1}"], row[f"eta_{n1}"], row[f"phi_{n1}"], row[f"m_{n1}"], row[f"pt_{n2}"], row[f"eta_{n2}"], row[f"phi_{n2}"], row[f"m_{n2}"])
-                pt_vis = generate_pt_vis(row[f"pt_{n1}"], row[f"eta_{n1}"], row[f"phi_{n1}"], row[f"m_{n1}"], row[f"pt_{n2}"], row[f"eta_{n2}"], row[f"phi_{n2}"], row[f"m_{n2}"])
+    #calculates mvis and pt for each muon pair
+    for n1 in range(1, n_muon+1):
+        for n2 in range(1, n_muon+1):
+            m_vis[:,n1-1, n2-1] = generate_m_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
+            pt_vis[:,n1-1, n2-1] = generate_pt_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
+    
+    #calculates difference from z boson mass
+    z_difference = np.absolute(np.copy(m_vis-m_z))
 
-                if abs(m_z-m_vis) < abs(m_z-best_m_vis):
-                    best_m_vis = m_vis
-                    best_pt_vis = pt_vis
+    #finds index of best fitting muon pair for each event
+    min_indices = np.nanargmin(z_difference.reshape(n_events, -1), axis=1)
 
-        if best_m_vis != -1.:
-            m_vis[n_event] = best_m_vis
-        if best_pt_vis != -1.:
-            pt_vis[n_event] = best_pt_vis
+    #converts previously reshaped array into to 2d array
+    row_col_indices = np.array([np.unravel_index(idx, (n_muon, n_muon)) for idx in min_indices])
+
+    #extracts values of ideal muon pairs
+    m_vis = m_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
+    pt_vis = pt_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
     
     return m_vis, pt_vis
 
@@ -172,7 +174,7 @@ def calculate_dr(data_df, emb_df, n_data, n_emb, filter):
                 dr_temp[mask] = np.nan
 
                 #only respecting distances smaller this threshold because everything else must be a mismatch
-                dr_temp[dr_temp>0.1] = np.nan
+                dr_temp[dr_temp>6] = np.nan
 
 
             dr_arr[:, n_d-1, n_e-1] = dr_temp

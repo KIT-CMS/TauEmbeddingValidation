@@ -57,7 +57,7 @@ def control_plot(data_col, emb_col, bins, title):
     ax_temp.bar(bins_data_center, 2*rel_diff_error, width=np.diff(edges), bottom=1-rel_diff_error, color="grey", alpha=0.5, edgecolor="none")
 
     #adding label and helping line to plot
-    dy_max = get_dy_max(rel_diff)
+    dy_max = get_dy_max(rel_diff-1)
     ax_temp.set_ylim(1-dy_max, 1+dy_max)
     ax_temp.set_ylabel(r"$N_\text{data}/N_\text{emb}$")
     plt.axhline(y=1, xmin=0, xmax=1, linestyle="dashed", color="black")
@@ -138,7 +138,7 @@ def q_comparison(col1, col2, bins, col1_label, col2_label, title):
     ax_temp.step(edges[:-1], rel_difference, where="post", color="black")
     ax_temp.bar(bins_data_center, 2*rel_difference_errors, width=np.diff(edges), bottom=rel_difference-rel_difference_errors, color="grey", alpha=0.5, edgecolor="none")
 
-    dy_max = get_dy_max(rel_difference)
+    dy_max = get_dy_max(rel_difference-1)
     ax_temp.set_ylim(1-dy_max, 1+dy_max)
 
     #adding label and helping line to plot
@@ -152,7 +152,10 @@ def q_comparison(col1, col2, bins, col1_label, col2_label, title):
 def get_dy_max(array):
     not_nan_array = array[~np.isnan(array)]
     array_max = np.amax(np.absolute(not_nan_array))
-    return min(1, 1.5*array_max)
+    dy_max = min(1, 1.5*array_max)
+    if dy_max == 0:
+        return 1
+    return dy_max
 
 
 def x_vs_y(x, y, xlabel, ylabel):
