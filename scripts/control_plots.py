@@ -24,7 +24,7 @@ print("Initialized directories")
 
 data_df = pd.read_hdf(hdf_path, "data_df")
 emb_df = pd.read_hdf(hdf_path, "emb_df")
-matched_emb_df = pd.read_hdf(hdf_path, "emb_df_matched")
+matched_emb_df = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
 
 verify_events(data_df, emb_df, matched_emb_df)
 

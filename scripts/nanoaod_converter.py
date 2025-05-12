@@ -55,8 +55,18 @@ emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
 print("Added m_vis and pt_vis")
 
 
-dr = calculate_dr(data_df, emb_df, 2, 5, filter=False)
+dr = calculate_dr(data_df, emb_df, 2, 5, filter=None)
 emb_df_matched = apply_genmatching(dr.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
+
+filter_list = [
+    {"col":"pt", "min":27, "max":np.inf, "emb":True, "data":True},
+    {"col":"eta", "min":-2.5, "max":2.5, "emb":True, "data":True},
+    {"col":"dr", "min":0, "max":0.001},
+    {"col":"pt_ratio", "min":0.75, "max":1.25}
+]
+
+dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=filter_list)
+emb_df_matched_filtered = apply_genmatching(dr.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
 
 print("Genmatching applied")
 
@@ -65,6 +75,7 @@ store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')
 store.put("data_df", data_df, index=False)
 store.put("emb_df", emb_df, index=False)
 store.put("emb_df_matched", emb_df_matched, index=False)
+store.put("emb_df_matched_filtered", emb_df_matched, index=False)
 store.close()
 
 print("Data stored in hdf store")
