@@ -259,3 +259,15 @@ def verify_events(*data):
         compare_cells(master_df["event"].values, df["event"].values)
         compare_cells(master_df["lumi"].values, df["lumi"].values)
         compare_cells(master_df["run"].values, df["run"].values)
+
+
+def detect_changes(df1, df2, columns:list):
+    res = ""
+    for column in columns:
+        temp = df1[column] - df2[column]
+        mask1 = ~np.isnan(temp)
+        mask2 = temp != 0
+        mask = np.logical_and(mask1, mask2)
+        count = mask.sum()
+        res += f"{column}: {count}; "
+    print(res + "rows different")

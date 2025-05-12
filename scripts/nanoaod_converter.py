@@ -5,13 +5,17 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, calculate_dr, apply_genmatching
-
+from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, calculate_dr, apply_genmatching, detect_changes
+from helper import initialize_dir
 
 data_path = "./data/2022G-nanoaod/2022G-data.root"
 emb_path = "./data/2022G-nanoaod/2022G-emb.root"
 
 output_path = "./data/converted"
+
+initialize_dir(output_path)
+
+print("Directory initialized")
 
 quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
@@ -69,6 +73,10 @@ dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=filter_list)
 emb_df_matched_filtered = apply_genmatching(dr.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
 
 print("Genmatching applied")
+
+detect_changes(emb_df, emb_df_matched, ["phi_1", "pt_1", "eta_1"])
+
+detect_changes(emb_df, emb_df_matched_filtered, ["phi_1", "pt_1", "eta_1"])
 
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
