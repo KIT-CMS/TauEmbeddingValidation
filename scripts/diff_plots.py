@@ -7,7 +7,7 @@ import numpy as np
 
 from helper import initialize_dir
 from plotting import histogram, q_comparison
-from importer import verify_events
+from importer import verify_events, detect_changes
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 default_output_path = "./output/diff_plots_unmatched_emb"
@@ -22,11 +22,13 @@ print("Initialized directories")
 
 data_df = pd.read_hdf(hdf_path, "data_df")
 emb_df = pd.read_hdf(hdf_path, "emb_df")
-matched_emb_df = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
+matched_emb_df = pd.read_hdf(hdf_path, "emb_df_matched")
 
 verify_events(data_df, emb_df, matched_emb_df)
 
 print("Data loaded and verified")
+
+detect_changes(emb_df, matched_emb_df, ["phi_1", "pt_1", "eta_1"])
 
 
 plotting_instructions = [
@@ -181,9 +183,9 @@ for quantity in plotting_instructions:
 
     if relative:
         title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df[col]) 
+        q_diff = (data_df[col] - matched_emb_df[col]) 
     else:
-        q_diff = data_df[col] - emb_df[col]
+        q_diff = data_df[col] - matched_emb_df[col]
 
     ax = histogram(q_diff, bins, title)
 

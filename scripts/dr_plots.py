@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import calculate_dr, get_closest_muon_data, verify_events
+from importer import calculate_dr, get_closest_muon_data, verify_events, get_filter_list
 from plotting import histogram, q_comparison
 from helper import initialize_dir
 
@@ -26,9 +26,9 @@ verify_events(data_df, emb_df)
 
 print("Data loaded and verified")
 
-
-dr_unfiltered = calculate_dr(data_df, emb_df, 2, 5, filter=False)
-dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=True)
+filter_list = get_filter_list()
+dr_unfiltered = calculate_dr(data_df, emb_df, 2, 5, filter=None)
+dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=filter_list)
 
 ax = q_comparison(dr_filtered[:,0,0], dr_unfiltered[:,0,0], np.linspace(0,6), r"$\Delta r_\text{filtered}$", r"$\Delta r_\text{unfiltered}$", r"$\Delta r$")
 ax[0].set_yscale("log")
@@ -36,7 +36,7 @@ plt.savefig(os.path.join(dr_plot_path, f"dr_comparison.png"))
 plt.close()
 
 #creating plots twice (1. with filter, then without)
-for filter in [True, False]:
+for filter in [filter_list, None]:
     
     dr = calculate_dr(data_df, emb_df, 2, 5, filter=filter)
     mu_index, mu_dr = get_closest_muon_data(dr)
@@ -61,7 +61,7 @@ for filter in [True, False]:
     fig.set_figheight(14)
     fig.set_figwidth(14)
 
-    hist2, edges, _ = ax.hist([dr[mu_index==num, 0,0] for num in np.unique(mu_index)], bins=25, label=[f"mindr bei emb $µ_{num} $)" for num in np.unique(mu_index)], stacked=True)
+    hist2, edges, _ = ax.hist([dr[mu_index==num, 0,0] for num in np.unique(mu_index)], bins=25, label=[f"mindr bei emb $µ_{num+1} $)" for num in np.unique(mu_index)], stacked=True)
     hist, _, _ = ax.hist(dr[:,0,0], bins=edges, label=f"dr(data $µ_1$, emb $µ_{1}$)", histtype="step", color="black", linewidth=1.6)
 
     hep.cms.label("Private work (data/simulation)", data=True, loc=0, year="2022G", com=13.6)#, lumi=59.8
@@ -81,7 +81,7 @@ for filter in [True, False]:
     fig.set_figheight(14)
     fig.set_figwidth(14)
 
-    hist2, edges, _ = ax.hist([mu_dr[mu_index==num] for num in np.unique(mu_index)], bins=25, label=[f"mindr bei emb $µ_{num} $)" for num in np.unique(mu_index)], stacked=True)
+    hist2, edges, _ = ax.hist([mu_dr[mu_index==num] for num in np.unique(mu_index)], bins=25, label=[f"mindr bei emb $µ_{num+1} $)" for num in np.unique(mu_index)], stacked=True)
     hist, _, _ = ax.hist(dr[:,0,0], bins=edges, label=f"dr(data $µ_1$, emb $µ_{1}$)", histtype="step", color="black", linewidth=1.6)
 
     hep.cms.label("Private work (data/simulation)", data=True, loc=0, year="2022G", com=13.6)#, lumi=59.8
