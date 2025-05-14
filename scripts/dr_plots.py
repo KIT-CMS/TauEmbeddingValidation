@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import calculate_dr, get_closest_muon_data, verify_events, get_filter_list
+from importer import verify_events
+from genmatching import calculate_dr, get_closest_muon_data, get_filter_list
 from plotting import histogram, q_comparison
 from helper import initialize_dir
 

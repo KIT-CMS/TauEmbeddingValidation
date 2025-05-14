@@ -7,7 +7,7 @@ import numpy as np
 
 from helper import initialize_dir
 from plotting import control_plot, q_comparison
-from importer import verify_events, detect_changes
+from genmatching import verify_events, detect_changes
 
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
