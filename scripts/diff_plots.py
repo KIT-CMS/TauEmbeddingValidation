@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from plotting import histogram, q_comparison, initialize_dir
-from importer import verify_events, detect_changes
+from plotting import histogram, q_comparison
+from importer import verify_events, initialize_dir
+from genmatching import detect_changes
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 default_output_path = "./output/diff_plots/data-emb_raw"
@@ -40,66 +41,77 @@ plotting_instructions = [
     {"col":"eta_1",             
         "bins":np.linspace(-2.5, 2.5, 25),      
         "title":r"$\eta_\text{Lµ, emb}$ - $\eta_\text{Lµ, data}$",             
+        "rel_title":r"$(\eta_\text{Lµ, emb}$ - $\eta_\text{Lµ, data}$) / $\eta_\text{Lµ, data}$",             
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"Jet_eta",           
         "bins":np.linspace(-5, 5, 25),          
         "title":r"$\eta_\text{LJet, emb}$ - $\eta_\text{LJet, data}$",                 
+        "rel_title":r"$(\eta_\text{LJet, emb}$ - $\eta_\text{LJet, data}$) / $\eta_\text{LJet, data}$",    
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"Jet_mass",          
         "bins":np.linspace(0, 50, 25),         
         "title":r"($m_\text{LJet, emb}$ - $m_\text{LJet, data}) / GeV$",           
+        "rel_title":r"($m_\text{LJet, emb}$ - $m_\text{LJet, data})$ / $m_\text{LJet, data})$",           
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"Jet_phi",           
         "bins":np.linspace(-7, 7, 25),      
         "title":r"$\phi_\text{LJet, emb}$ - $\phi_\text{LJet, data}$",              
+        "rel_title":r"$(\phi_\text{LJet, emb}$ - $\phi_\text{LJet, data})$ / $\phi_\text{LJet, data}$",              
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"m_vis",             
         "bins":np.linspace(-200, 400, 25),         
-        "title":r"$m_\text{µµ, emb}$ - $m_\text{µµ, data}$",             
+        "title":r"$m_\text{µµ, emb}$ - $m_\text{µµ, data})$",             
+        "rel_title":r"$(m_\text{µµ, emb}$ - $m_\text{µµ, data})$ / $m_\text{µµ, data}$",             
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"phi_1",             
         "bins":np.linspace(-7, 7, 25),          
         "title":r"$\phi_\text{Lµ, emb}$ - $\phi_\text{Lµ, data}$",             
+        "rel_title":r"($\phi_\text{Lµ, emb}$ - $\phi_\text{Lµ, data})$ / $\phi_\text{Lµ, data}$",             
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"pt_1",              
         "bins":np.linspace(0, 150, 25),         
         "title":r"$p_\text{T, Lµ, emb}$ - $p_\text{T, Lµ, data}$",  
+        "rel_title":r"$(p_\text{T, Lµ, emb}$ - $p_\text{T, Lµ, data})$ / $p_\text{T, Lµ, data}$",  
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"pt_vis",            
         "bins":np.linspace(-1000, 2500, 25),        
         "title":r"$p_\text{T µµ, emb}$ - $p_\text{T µµ, data}$",           
+        "rel_title":r"$(p_\text{T µµ, emb}$ - $p_\text{T µµ, data})$ / $p_\text{T µµ, data}$",           
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_phi",      
         "bins":np.linspace(-3.5, 3.5, 25),      
         "title":r"$(E_\text{\phi miss, emb}$ - $E_\text{\phi miss, data}$) / GeV",           
+        "rel_title":r"$(E_\text{\phi miss, emb}$ - $E_\text{\phi miss, data}$) / $E_\text{\phi miss, data}$",           
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_pt",       
         "bins":np.linspace(0, 110, 25),        
         "title":r"$(p_\text{T miss, emb}$ - $p_\text{T miss, data})/ GeV$",           
+        "rel_title":r"$(p_\text{T miss, emb}$ - $p_\text{T miss, data})$ / $p_\text{T miss, data}$",           
         "relative":False,
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_sumEt",    
         "bins":np.linspace(0, 700, 25),         
         "title":r"$(E_\text{miss, emb}$ - $E_\text{miss, data}$) / GeV",      
+        "rel_title":r"$(E_\text{miss, emb}$ - $E_\text{miss, data})$ / $E_\text{miss, data}$",      
         "relative":False,
         "ylog":True,    
         "xlog":False},
@@ -110,13 +122,13 @@ plotting_instructions = [
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = 25
-    title = quantity["title"]
     relative = quantity["relative"]
 
     if relative:
-        title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df[col]) 
+        title = quantity["rel_title"]
+        q_diff = (data_df[col] - emb_df[col]) / data_df[col]
     else:
+        title = quantity["title"]
         q_diff = data_df[col] - emb_df[col]
 
     ax = histogram(q_diff, bins, title)
@@ -136,14 +148,14 @@ for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
     title = quantity["title"]
+    relative = quantity["relative"]
 
     if relative:
-        title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df[col]) 
+        title = quantity["rel_title"]
+        q_diff = (data_df[col] - emb_df[col]) / data_df[col]
     else:
+        title = quantity["title"]
         q_diff = data_df[col] - emb_df[col]
-
-    ax = histogram(q_diff, bins, title)
 
     if quantity["xlog"]:
         ax.set_xscale("log")
@@ -163,9 +175,10 @@ for quantity in plotting_instructions:
     relative = quantity["relative"]
 
     if relative:
-        title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df_matched[col]) 
+        title = quantity["rel_title"]
+        q_diff = (data_df[col] - emb_df_matched[col]) / data_df[col]
     else:
+        title = quantity["title"]
         q_diff = data_df[col] - emb_df_matched[col]
 
     ax = histogram(q_diff, bins, title)
@@ -185,11 +198,13 @@ for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
     title = quantity["title"]
+    relative = quantity["relative"]
 
     if relative:
-        title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df_matched[col]) 
+        title = quantity["rel_title"]
+        q_diff = (data_df[col] - emb_df_matched[col]) / data_df[col]
     else:
+        title = quantity["title"]
         q_diff = data_df[col] - emb_df_matched[col]
 
     ax = histogram(q_diff, bins, title)
@@ -214,9 +229,10 @@ for quantity in plotting_instructions:
     relative = quantity["relative"]
 
     if relative:
-        title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df_matched_filtered[col]) 
+        title = quantity["rel_title"]
+        q_diff = (data_df[col] - emb_df_matched_filtered[col]) / data_df[col]
     else:
+        title = quantity["title"]
         q_diff = data_df[col] - emb_df_matched_filtered[col]
 
     ax = histogram(q_diff, bins, title)
@@ -236,12 +252,14 @@ for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
     title = quantity["title"]
+    relative = quantity["relative"]
 
     if relative:
-        title = title.replace(" - ", " / ")/ data_df[col]
-        q_diff = (data_df[col] - emb_df_matched[col]) 
+        title = quantity["rel_title"]
+        q_diff = (data_df[col] - emb_df_matched_filtered[col]) / data_df[col]
     else:
-        q_diff = data_df[col] - emb_df_matched[col]
+        title = quantity["title"]
+        q_diff = data_df[col] - emb_df_matched_filtered[col]
 
     ax = histogram(q_diff, bins, title)
 

@@ -164,3 +164,13 @@ def initialize_dir(base_path: str, subfolders: list[str]=None):
         # Create subfolders 
         for sub in subfolders:
             (base_dir / sub).mkdir(parents=True, exist_ok=True)
+
+def subtract_columns(col1, col2, col_name:str):
+    if not col_name.startswith("phi"):
+        return col1 - col2
+    #phi needs to be handled differently because the value must be lower than pi
+    else:
+        diff = col1 - col2
+        mask = diff > np.pi
+        diff[mask] = 2 * np.pi - diff[mask]
+        return diff
