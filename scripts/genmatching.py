@@ -96,11 +96,11 @@ def apply_genmatching(dr_arr, df, switch_quantities):
             #in this case the muon can only be matched once.
             muon_id = muon1_id
             #thus removing the id for avoiding reselection
-            distances = remove_emb_mu_from_dist(distances, muon_id)
 
             dr1 = distances[0,muon_id]
             dr2 = distances[1,muon_id]
             
+            distances = remove_emb_mu_from_dist(distances, muon_id)
             #if muon fits best to first candidate
             if dr1 <= dr2:
                 #the second one is recalculated
@@ -122,7 +122,6 @@ def apply_genmatching(dr_arr, df, switch_quantities):
                     #updating quantity
                     df.loc[n_event, f"{q_name}_1"] = temp1
                     df.loc[n_event, f"{q_name}_2"] = temp2
-    
     return df
 
 

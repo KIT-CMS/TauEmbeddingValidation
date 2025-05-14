@@ -12,7 +12,7 @@ from genmatching import detect_changes, subtract_columns, divide_columns
 hdf_path = "./data/converted/converted_nanoaod.h5"
 default_output_path = "./output/diff_plots/data-emb_raw"
 matched_output_path = "./output/diff_plots/data-emb_matched"
-matched_filtered_output_path = "./output/diff_plots/data-emb_matched_filtered_emb"
+matched_filtered_output_path = "./output/diff_plots/data-emb_matched_filtered"
 matched_comparison_output_path = "./output/diff_plots/comparison-emb_raw-emb_matched"
 matched_filtered_comparison_output_path = "./output/diff_plots/comparison-emb_raw-emb_matched_filtered"
 
@@ -289,11 +289,19 @@ print("Created matched + filtered diff plots with custom binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = 25
-    title = quantity["title"]
+    relative = quantity["relative"]
 
-    col1 = emb_df_matched[col]
-    col2 = emb_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
+    col1 = subtract_columns(data_df[col], emb_df_matched[col], col)
+    col2 = subtract_columns(data_df[col], emb_df[col], col)
+
+    if relative:
+        col1 = divide_columns(col1, data_df[col])
+        col2 = divide_columns(col2, data_df[col])
+        title = quantity["rel_title"]
+        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
+    else:
+        title = quantity["title"]
+        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
     
     if quantity["xlog"]:
         ax[0].set_xscale("log")
@@ -309,11 +317,20 @@ print("Created matched comparison plots with default binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
-    title = quantity["title"]
+    relative = quantity["relative"]
 
-    col1 = emb_df_matched[col] - data_df[col]
-    col2 = emb_df[col] - data_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
+    col1 = subtract_columns(data_df[col], emb_df_matched[col], col)
+    col2 = subtract_columns(data_df[col], emb_df[col], col)
+
+    if relative:
+        col1 = divide_columns(col1, data_df[col])
+        col2 = divide_columns(col2, data_df[col])
+        title = quantity["rel_title"]
+        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
+    else:
+        title = quantity["title"]
+        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
+
     if quantity["xlog"]:
         ax[0].set_xscale("log")
     if quantity["ylog"]:
@@ -329,11 +346,19 @@ print("Created matched comparison plots with custom binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = 25
-    title = quantity["title"]
+    relative = quantity["relative"]
 
-    col1 = emb_df_matched_filtered[col]
-    col2 = emb_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
+    col1 = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
+    col2 = subtract_columns(data_df[col], emb_df[col], col)
+
+    if relative:
+        col1 = divide_columns(col1, data_df[col])
+        col2 = divide_columns(col2, data_df[col])
+        title = quantity["rel_title"]
+        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
+    else:
+        title = quantity["title"]
+        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
     
     if quantity["xlog"]:
         ax[0].set_xscale("log")
@@ -349,11 +374,20 @@ print("Created matched + filtered comparison plots with default binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
-    title = quantity["title"]
+    relative = quantity["relative"]
 
-    col1 = emb_df_matched_filtered[col] - data_df[col]
-    col2 = emb_df[col] - data_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
+    col1 = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
+    col2 = subtract_columns(data_df[col], emb_df[col], col)
+
+    if relative:
+        col1 = divide_columns(col1, data_df[col])
+        col2 = divide_columns(col2, data_df[col])
+        title = quantity["rel_title"]
+        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
+    else:
+        title = quantity["title"]
+        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
+
     if quantity["xlog"]:
         ax[0].set_xscale("log")
     if quantity["ylog"]:
