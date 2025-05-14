@@ -89,9 +89,27 @@ def apply_genmatching(dr_arr, df, switch_quantities):
         distances = dr_arr[n_event, :, :]
         
         muon1_id = find_closest_muon(distances[0, :])
-        distances = remove_emb_mu_from_dist(distances, muon1_id)
-
         muon2_id = find_closest_muon(distances[1, :])
+        
+        #checking whether candidates both fit best to the same muon
+        if muon1_id == muon2_id:
+            #in this case the muon can only be matched once.
+            muon_id = muon1_id
+            #thus removing the id for avoiding reselection
+            distances = remove_emb_mu_from_dist(distances, muon_id)
+
+            dr1 = distances[0,muon_id]
+            dr2 = distances[1,muon_id]
+            
+            #if muon fits best to first candidate
+            if dr1 <= dr2:
+                #the second one is recalculated
+                muon2_id = find_closest_muon(distances[1, :])
+            #otherwise the other way around
+            else:
+                muon1_id = find_closest_muon(distances[0, :])
+
+        #else: #does not matter
         
         #ignoring nans
         if np.isnan([muon1_id, muon2_id]).sum() == 0:
