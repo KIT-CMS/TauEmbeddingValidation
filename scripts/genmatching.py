@@ -162,18 +162,14 @@ def detect_changes(df1, df2, columns:list):
 
 def subtract_columns(col1, col2, col_name:str):
     if not col_name.startswith("phi"):
-        diff = col1 - col2
+        diff = np.abs(col1 - col2)
     #phi needs to be handled differently because the value must be lower than pi
     else:
-        diff = col1 - col2
-        mask1 = np.abs(diff) > np.pi
-        mask2 = col1 >= col2
+        diff = np.abs(col1 - col2)
 
-        mask = np.logical_and(mask1, mask2)
-        diff[mask] = 2 * np.pi - diff[mask]
-
-        mask = np.logical_and(mask1, ~mask2)
-        diff[mask] = 2 * np.pi + diff[mask]
+        mask = diff > np.pi
+        
+        diff[mask] = 2*np.pi - diff[mask]
 
     return diff
 
