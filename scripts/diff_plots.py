@@ -5,9 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from helper import initialize_dir
-from plotting import histogram, q_comparison
-from genmatching import verify_events, detect_changes
+from plotting import histogram, q_comparison, initialize_dir
+from importer import verify_events, detect_changes
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 default_output_path = "./output/diff_plots/data-emb_raw"

@@ -5,10 +5,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import verify_events
+from importer import verify_events, initialize_dir
 from genmatching import calculate_dr, get_closest_muon_data, get_filter_list
 from plotting import histogram, q_comparison
-from helper import initialize_dir
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 dr_plot_path = "./output/dr_plots"
