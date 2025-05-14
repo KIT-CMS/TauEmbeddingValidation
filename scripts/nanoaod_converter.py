@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, calculate_dr, apply_genmatching, detect_changes, get_filter_list
+from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, calculate_dr, apply_genmatching, detect_changes, get_filter_list, verify_events
 from helper import initialize_dir
 
 data_path = "./data/2022G-nanoaod/2022G-data.root"
@@ -46,9 +46,8 @@ print("Data loaded")
 data_df = data_df.sort_values(by=["run", "lumi", "event"], ignore_index=True)
 emb_df = emb_df.sort_values(by=["run", "lumi", "event"], ignore_index=True)
 
-compare_cells(data_df["event"].values, emb_df["event"].values)
-compare_cells(data_df["lumi"].values, emb_df["lumi"].values)
-compare_cells(data_df["run"].values, emb_df["run"].values)
+
+verify_events(data_df, emb_df)
 
 print("Data ok")
 
