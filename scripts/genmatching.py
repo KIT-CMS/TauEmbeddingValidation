@@ -26,8 +26,8 @@ def calculate_dr(data_df, emb_df, n_data, n_emb, filter=None):
     #looping over all data particle and embedding particle combinations
     for n_d in range(1, n_data+1):
         for n_e in range(1, n_emb+1):
-            eta_diff = data_df[f"eta_{n_d}"] - emb_df[f"eta_{n_e}"]
-            phi_diff = data_df[f"phi_{n_d}"] - emb_df[f"phi_{n_e}"]
+            eta_diff = subtract_columns(data_df[f"eta_{n_d}"], emb_df[f"eta_{n_e}"], "eta_")
+            phi_diff = subtract_columns(data_df[f"phi_{n_d}"], emb_df[f"phi_{n_e}"], "phi_")
 
             #calculating the dr value between them for all events
             dr_temp = np.sqrt(np.square(eta_diff) + np.square(phi_diff))
@@ -140,3 +140,36 @@ def detect_changes(df1, df2, columns:list):
         count = mask.sum()
         res += f"{column}: {count}; "
     print(res + "rows different")
+
+
+
+def subtract_columns(col1, col2, col_name:str):
+    if not col_name.startswith("phi"):
+        diff = col1 - col2
+    #phi needs to be handled differently because the value must be lower than pi
+    else:
+        diff = col1 - col2
+        mask1 = np.abs(diff) > np.pi
+        mask2 = col1 >= col2
+
+        mask = np.logical_and(mask1, mask2)
+        diff[mask] = 2 * np.pi - diff[mask]
+
+        mask = np.logical_and(mask1, ~mask2)
+        diff[mask] = 2 * np.pi + diff[mask]
+
+    return diff
+
+
+def divide_columns(numerator, divisor):
+    mask1 = divisor != 0
+    mask2 = ~np.isnan(divisor)
+    mask3 = ~np.isnan(numerator)
+
+    mask = np.logical_and(mask1, mask2)
+    mask = np.logical_and(mask, mask3)
+
+    q = np.full_like(numerator, np.nan)
+    q[mask] = numerator[mask]/ divisor[mask]
+
+    return q

@@ -7,7 +7,7 @@ import numpy as np
 
 from plotting import histogram, q_comparison
 from importer import verify_events, initialize_dir
-from genmatching import detect_changes
+from genmatching import detect_changes, subtract_columns, divide_columns
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 default_output_path = "./output/diff_plots/data-emb_raw"
@@ -124,12 +124,13 @@ for quantity in plotting_instructions:
     bins = 25
     relative = quantity["relative"]
 
+    q_diff = subtract_columns(data_df[col], emb_df[col], col)
+    
     if relative:
         title = quantity["rel_title"]
-        q_diff = (data_df[col] - emb_df[col]) / data_df[col]
+        q_diff = divide_columns(q_diff, data_df[col])
     else:
         title = quantity["title"]
-        q_diff = data_df[col] - emb_df[col]
 
     ax = histogram(q_diff, bins, title)
     
@@ -147,15 +148,17 @@ print("Created unmatched diff plots with default binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
-    title = quantity["title"]
     relative = quantity["relative"]
 
+    q_diff = subtract_columns(data_df[col], emb_df[col], col)
+    
     if relative:
         title = quantity["rel_title"]
-        q_diff = (data_df[col] - emb_df[col]) / data_df[col]
+        q_diff = divide_columns(q_diff, data_df[col])
     else:
         title = quantity["title"]
-        q_diff = data_df[col] - emb_df[col]
+
+    ax = histogram(q_diff, bins, title)
 
     if quantity["xlog"]:
         ax.set_xscale("log")
@@ -171,15 +174,18 @@ print("Created unmatched diff plots with custom binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = 25
-    title = quantity["title"]
     relative = quantity["relative"]
 
+
+    q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
+    
     if relative:
         title = quantity["rel_title"]
-        q_diff = (data_df[col] - emb_df_matched[col]) / data_df[col]
+        q_diff = divide_columns(q_diff, data_df[col])
     else:
         title = quantity["title"]
-        q_diff = data_df[col] - emb_df_matched[col]
+
+    ax = histogram(q_diff, bins, title)
 
     ax = histogram(q_diff, bins, title)
     
@@ -197,15 +203,17 @@ print("Created matched diff plots with default binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
-    title = quantity["title"]
     relative = quantity["relative"]
 
+
+    q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
+    
     if relative:
         title = quantity["rel_title"]
-        q_diff = (data_df[col] - emb_df_matched[col]) / data_df[col]
+        q_diff = divide_columns(q_diff, data_df[col])
     else:
         title = quantity["title"]
-        q_diff = data_df[col] - emb_df_matched[col]
+
 
     ax = histogram(q_diff, bins, title)
 
@@ -225,15 +233,17 @@ print("Created matched diff plots with custom binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = 25
-    title = quantity["title"]
     relative = quantity["relative"]
 
+
+    q_diff = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
+    
     if relative:
         title = quantity["rel_title"]
-        q_diff = (data_df[col] - emb_df_matched_filtered[col]) / data_df[col]
+        q_diff = divide_columns(q_diff, data_df[col])
     else:
         title = quantity["title"]
-        q_diff = data_df[col] - emb_df_matched_filtered[col]
+
 
     ax = histogram(q_diff, bins, title)
     
@@ -251,15 +261,16 @@ print("Created matched + filtered diff plots with default binning")
 for quantity in plotting_instructions:
     col = quantity["col"]
     bins = quantity["bins"]
-    title = quantity["title"]
     relative = quantity["relative"]
 
+
+    q_diff = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
+    
     if relative:
         title = quantity["rel_title"]
-        q_diff = (data_df[col] - emb_df_matched_filtered[col]) / data_df[col]
+        q_diff = divide_columns(q_diff, data_df[col])
     else:
         title = quantity["title"]
-        q_diff = data_df[col] - emb_df_matched_filtered[col]
 
     ax = histogram(q_diff, bins, title)
 
