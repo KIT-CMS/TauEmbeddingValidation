@@ -5,10 +5,10 @@ import numpy as np
 import vector
 
 filter_list = [
-    {"col":"pt", "min":27, "max":np.inf, "emb":True, "data":True},
-    {"col":"eta", "min":-2.5, "max":2.5, "emb":True, "data":True},
-    # {"col":"dr", "min":0, "max":0.001},
-    {"col":"pt_ratio", "min":0.75, "max":1.25}
+    {"col":"dr", "min":0, "max":0.01},
+    # {"col":"pt", "min":27, "max":np.inf, "emb":True, "data":True},
+    # {"col":"eta", "min":-2.5, "max":2.5, "emb":True, "data":True},
+    # {"col":"pt_ratio", "min":0.75, "max":1.25}
 ]
 
 def get_filter_list():
