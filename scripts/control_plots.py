@@ -5,22 +5,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from plotting import control_plot, q_comparison
-from importer import verify_events, detect_changes, initialize_dir
-
+from plotting import control_plot, nq_comparison
+from importer import verify_events, initialize_dir
+from genmatching import detect_changes
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
-default_output_path = "./output/control_plots/data-emb_raw"
-matched_output_path = "./output/control_plots/data-emb_matched"
-matched_filtered_output_path = "./output/control_plots/data-emb_matched_filtered_emb"
-matched_comparison_output_path = "./output/control_plots/comparison-emb_raw-emb_matched"
-matched_filtered_comparison_output_path = "./output/control_plots/comparison-emb_raw-emb_matched_filtered"
+comparison_output_path = "./output/control_plots/comparison"
 
-initialize_dir(default_output_path, ["default", "custom"])
-initialize_dir(matched_output_path, ["default", "custom"])
-initialize_dir(matched_filtered_output_path, ["default", "custom"])
-initialize_dir(matched_comparison_output_path, ["default", "custom"])
-initialize_dir(matched_filtered_comparison_output_path, ["default", "custom"])
+
+initialize_dir(comparison_output_path, ["default", "custom"])
 
 print("Initialized directories")
 
@@ -96,191 +89,75 @@ plotting_instructions = [
         "xlog":False},
 ]
 
-#data vs embedding (raw)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    title = quantity["title"]
-    ax = control_plot(data_df[col], emb_df[col], bins, title)
+# #data vs embedding 
+# for quantity in plotting_instructions:
+#     col = quantity["col"]
+#     bins = quantity["bins"]
+#     title = quantity["title"]
+
+#     ax = control_plot(data_df[col], emb_df_matched[col], bins, title)
+
+#     if quantity["xlog"]:
+#         ax[0].set_xscale("log")
+#     if quantity["ylog"]:
+#         ax[0].set_yscale("log")
     
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
+#     plt.savefig(os.path.join(matched_output_path, "custom", f"{col}.png"))
+#     plt.close()
+
+# print("Created matched control plots with custom binning")
+
+
+#comparison
+
+# for quantity in plotting_instructions:
+#     col = quantity["col"]
+#     bins = quantity["bins"]
+#     title = quantity["title"]
+
+#     col1 = emb_df_matched[col]
+#     col2 = emb_df[col]
+#     ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
+#     if quantity["xlog"]:
+#         ax[0].set_xscale("log")
+#     if quantity["ylog"]:
+#         ax[0].set_yscale("log")
     
-    plt.savefig(os.path.join(default_output_path, "default", f"{col}.png"))
-    plt.close()
+#     plt.savefig(os.path.join(matched_comparison_output_path, "custom", f"{col}.png"))
+#     plt.close()
 
-print("Plotted control plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    title = quantity["title"]
-    ax = control_plot(data_df[col], emb_df[col], bins, title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(default_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Plotted control plots with custom binning")
-
-#data vs embedding (matched)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    title = quantity["title"]
-
-    ax = control_plot(data_df[col], emb_df_matched[col], bins, title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched control plots with default binning")
-
+# print("Created matched comparison plots with custom binning")
 
 for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    title = quantity["title"]
+    for mode in ["custom", "default"]:
+        if mode == "default":
+            bins = 25
+        elif mode == "custom":
+            bins = quantity["bins"]
 
-    ax = control_plot(data_df[col], emb_df_matched[col], bins, title)
+        col = quantity["col"]
+        title = quantity["title"]
 
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_output_path, "custom", f"{col}.png"))
-    plt.close()
+        col0 = data_df[col]
+        col1 = emb_df[col]
+        col2 = emb_df_matched[col]
+        col3 = emb_df_matched_filtered[col]
 
-print("Created matched control plots with custom binning")
+        q_dict = {
+            "Emb (raw)": col1,
+            "Emb (matched)": col2,
+            "Emb (matched, filtered)": col3
+        }
+        ax = nq_comparison(q_dict, bins=bins, title=title, data=col0)
+        
+        if quantity["xlog"]:
+            ax.set_xscale("log")
+        if quantity["ylog"]:
+            ax.set_yscale("log")
+        
+        plt.savefig(os.path.join(comparison_output_path, mode, f"{col}.png"))
+        plt.close()
 
+print("Created triple comparison plots")
 
-
-#data vs embedding (matched+filtered)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    title = quantity["title"]
-
-    ax = control_plot(data_df[col], emb_df_matched_filtered[col], bins, title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered control plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    title = quantity["title"]
-
-    ax = control_plot(data_df[col], emb_df_matched_filtered[col], bins, title)
-
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered control plots with default binning")
-
-
-#comparison: embedding (matched) vs embedding (raw)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    title = quantity["title"]
-
-    col1 = emb_df_matched[col]
-    col2 = emb_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_comparison_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched comparison plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    title = quantity["title"]
-
-    col1 = emb_df_matched[col]
-    col2 = emb_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched emb", "Unmatched emb", title)
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_comparison_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched comparison plots with custom binning")
-
-
-#comparison: embedding (matched+filtered) vs embedding (raw)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    title = quantity["title"]
-
-    col1 = emb_df_matched_filtered[col]
-    col2 = emb_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched, filtered emb", "Unmatched emb", title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_comparison_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered comparison plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    title = quantity["title"]
-
-    col1 = emb_df_matched_filtered[col]
-    col2 = emb_df[col]
-    ax = q_comparison(col1, col2, bins, "Matched, filtered emb", "Unmatched emb", title)
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_comparison_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered comparison plots with custom binning")
 print("Plotting finished")

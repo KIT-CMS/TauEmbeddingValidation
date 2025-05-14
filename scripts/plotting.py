@@ -176,3 +176,35 @@ def x_vs_y(x, y, xlabel, ylabel):
     #     handle.set_linewidth(1.5)  # Make edge visible
 
     return ax
+
+
+def nq_comparison(q_dict, bins, title, data=None):
+
+    #creating figure, selecting upper axis 
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    fig.set_figheight(14)
+    fig.set_figwidth(14)
+
+
+    for label in q_dict:
+        col = q_dict[label]
+
+        #plotting corrected embeddign histogram
+        _, bins, _ = ax.hist(col, bins, label=label, histtype="step", linewidth=2)
+
+    if type(data)!=type(None):
+        data_hist, _ = np.histogram(data, bins)
+        bins_data_center = get_bin_center(bins)
+        data_errors = np.sqrt(data_hist)
+        ax.errorbar(bins_data_center, data_hist, xerr=np.diff(bins)/2, yerr=data_errors, label="Data", c="black", fmt="o", linestyle="none", markersize=8)
+
+    ax.set_xlabel(title)
+    #adding title, labels and legend to upper plot
+    hep.cms.label("Private work (data/simulation)", data=True, loc=0, year="2022G", com=13.6)#, lumi=59.8
+    plt.subplots_adjust(hspace=0.05)
+    plt.legend()
+
+
+    return ax
+
+

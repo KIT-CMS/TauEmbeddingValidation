@@ -5,22 +5,17 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from plotting import histogram, q_comparison
+from plotting import histogram, nq_comparison
 from importer import verify_events, initialize_dir
 from genmatching import detect_changes, subtract_columns, divide_columns
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
-default_output_path = "./output/diff_plots/data-emb_raw"
-matched_output_path = "./output/diff_plots/data-emb_matched"
-matched_filtered_output_path = "./output/diff_plots/data-emb_matched_filtered"
-matched_comparison_output_path = "./output/diff_plots/comparison-emb_raw-emb_matched"
-matched_filtered_comparison_output_path = "./output/diff_plots/comparison-emb_raw-emb_matched_filtered"
 
-initialize_dir(default_output_path, ["default", "custom"])
-initialize_dir(matched_output_path, ["default", "custom"])
-initialize_dir(matched_filtered_output_path, ["default", "custom"])
-initialize_dir(matched_comparison_output_path, ["default", "custom"])
-initialize_dir(matched_filtered_comparison_output_path, ["default", "custom"])
+comparison_output_path = "./output/diff_plots/comparison"
+comparison_output_path = "./output/diff_plots/comparison"
+
+initialize_dir(comparison_output_path, ["default", "custom"])
+
 
 print("Initialized directories")
 
@@ -118,286 +113,106 @@ plotting_instructions = [
 ]
 
 
-#data - embedding_raw
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    relative = quantity["relative"]
-
-    q_diff = subtract_columns(data_df[col], emb_df[col], col)
-    
-    if relative:
-        title = quantity["rel_title"]
-        q_diff = divide_columns(q_diff, data_df[col])
-    else:
-        title = quantity["title"]
-
-    ax = histogram(q_diff, bins, title)
-    
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
-    
-    plt.savefig(os.path.join(default_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created unmatched diff plots with default binning")
-
+#comparison plots
 
 for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    relative = quantity["relative"]
+    for mode in ["custom", "default"]:
+        if mode == "default":
+            bins = 25
+        elif mode == "custom":
+            bins = quantity["bins"]
 
-    q_diff = subtract_columns(data_df[col], emb_df[col], col)
+        col = quantity["col"]
+        relative = quantity["relative"]
+
+        col1 = subtract_columns(data_df[col], emb_df[col], col)
+        col2 = subtract_columns(data_df[col], emb_df_matched[col], col)
+        col3 = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
+
+        if relative:
+            col1 = divide_columns(col1, data_df[col])
+            col2 = divide_columns(col2, data_df[col])
+            col3 = divide_columns(col2, data_df[col])
+            title = quantity["rel_title"]
+        else:
+            title = quantity["title"]
+
+        q_dict = {
+            "Emb (raw) - data": col1,
+            "Emb (matched) - data": col2,
+            "Emb (matched, filtered) - data": col3
+        }
+        ax = nq_comparison(q_dict, bins=bins, title=title)
+        
+        if quantity["xlog"]:
+            ax.set_xscale("log")
+        if quantity["ylog"]:
+            ax.set_yscale("log")
+        
+        plt.savefig(os.path.join(comparison_output_path, mode, f"{col}.png"))
+        plt.close()
+
+print("Created triple comparison plots")
+
+
+
+
+# for quantity in plotting_instructions:
+#     col = quantity["col"]
+#     bins = quantity["bins"]
+#     relative = quantity["relative"]
+
+
+#     q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
     
-    if relative:
-        title = quantity["rel_title"]
-        q_diff = divide_columns(q_diff, data_df[col])
-    else:
-        title = quantity["title"]
+#     if relative:
+#         title = quantity["rel_title"]
+#         q_diff = divide_columns(q_diff, data_df[col])
+#     else:
+#         title = quantity["title"]
 
-    ax = histogram(q_diff, bins, title)
 
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
+#     ax = histogram(q_diff, bins, title)
+
+#     if quantity["xlog"]:
+#         ax.set_xscale("log")
+#     if quantity["ylog"]:
+#         ax.set_yscale("log")
     
-    plt.savefig(os.path.join(default_output_path, "custom", f"{col}.png"))
-    plt.close()
+#     plt.savefig(os.path.join(matched_output_path, "custom", f"{col}.png"))
+#     plt.close()
 
-print("Created unmatched diff plots with custom binning")
-
-#data - embedding (matched)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    relative = quantity["relative"]
+# print("Created matched diff plots with custom binning")
 
 
-    q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
+
+# #comparison: embedding (raw) -data, embedding (matched) - data
+# for quantity in plotting_instructions:
+#     col = quantity["col"]
+#     bins = 25
+#     relative = quantity["relative"]
+
+#     col1 = subtract_columns(data_df[col], emb_df_matched[col], col)
+#     col2 = subtract_columns(data_df[col], emb_df[col], col)
+
+#     if relative:
+#         col1 = divide_columns(col1, data_df[col])
+#         col2 = divide_columns(col2, data_df[col])
+#         title = quantity["rel_title"]
+#         ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
+#     else:
+#         title = quantity["title"]
+#         ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
     
-    if relative:
-        title = quantity["rel_title"]
-        q_diff = divide_columns(q_diff, data_df[col])
-    else:
-        title = quantity["title"]
-
-    ax = histogram(q_diff, bins, title)
-
-    ax = histogram(q_diff, bins, title)
+#     if quantity["xlog"]:
+#         ax[0].set_xscale("log")
+#     if quantity["ylog"]:
+#         ax[0].set_yscale("log")
     
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_output_path, "default", f"{col}.png"))
-    plt.close()
+#     plt.savefig(os.path.join(matched_comparison_output_path, "default", f"{col}.png"))
+#     plt.close()
 
-print("Created matched diff plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    relative = quantity["relative"]
-
-
-    q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
-    
-    if relative:
-        title = quantity["rel_title"]
-        q_diff = divide_columns(q_diff, data_df[col])
-    else:
-        title = quantity["title"]
-
-
-    ax = histogram(q_diff, bins, title)
-
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched diff plots with custom binning")
-
-
-
-#data - embedding (matched + filtered)
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    relative = quantity["relative"]
-
-
-    q_diff = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
-    
-    if relative:
-        title = quantity["rel_title"]
-        q_diff = divide_columns(q_diff, data_df[col])
-    else:
-        title = quantity["title"]
-
-
-    ax = histogram(q_diff, bins, title)
-    
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered diff plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    relative = quantity["relative"]
-
-
-    q_diff = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
-    
-    if relative:
-        title = quantity["rel_title"]
-        q_diff = divide_columns(q_diff, data_df[col])
-    else:
-        title = quantity["title"]
-
-    ax = histogram(q_diff, bins, title)
-
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered diff plots with custom binning")
-
-
-#comparison: embedding (raw) -data, embedding (matched) - data
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    relative = quantity["relative"]
-
-    col1 = subtract_columns(data_df[col], emb_df_matched[col], col)
-    col2 = subtract_columns(data_df[col], emb_df[col], col)
-
-    if relative:
-        col1 = divide_columns(col1, data_df[col])
-        col2 = divide_columns(col2, data_df[col])
-        title = quantity["rel_title"]
-        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
-    else:
-        title = quantity["title"]
-        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_comparison_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched comparison plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    relative = quantity["relative"]
-
-    col1 = subtract_columns(data_df[col], emb_df_matched[col], col)
-    col2 = subtract_columns(data_df[col], emb_df[col], col)
-
-    if relative:
-        col1 = divide_columns(col1, data_df[col])
-        col2 = divide_columns(col2, data_df[col])
-        title = quantity["rel_title"]
-        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
-    else:
-        title = quantity["title"]
-        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
-
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_comparison_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched comparison plots with custom binning")
-
-
-#comparison: embedding (raw) -data, embedding (matched, filtered) - data
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = 25
-    relative = quantity["relative"]
-
-    col1 = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
-    col2 = subtract_columns(data_df[col], emb_df[col], col)
-
-    if relative:
-        col1 = divide_columns(col1, data_df[col])
-        col2 = divide_columns(col2, data_df[col])
-        title = quantity["rel_title"]
-        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
-    else:
-        title = quantity["title"]
-        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
-    
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_comparison_output_path, "default", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered comparison plots with default binning")
-
-
-for quantity in plotting_instructions:
-    col = quantity["col"]
-    bins = quantity["bins"]
-    relative = quantity["relative"]
-
-    col1 = subtract_columns(data_df[col], emb_df_matched_filtered[col], col)
-    col2 = subtract_columns(data_df[col], emb_df[col], col)
-
-    if relative:
-        col1 = divide_columns(col1, data_df[col])
-        col2 = divide_columns(col2, data_df[col])
-        title = quantity["rel_title"]
-        ax = q_comparison(col1, col2, bins, "(Matched emb - data)/ data", "(Unmatched emb - data)/ data", title)
-    else:
-        title = quantity["title"]
-        ax = q_comparison(col1, col2, bins, "Matched emb - data", "Unmatched emb - data", title)
-
-    if quantity["xlog"]:
-        ax[0].set_xscale("log")
-    if quantity["ylog"]:
-        ax[0].set_yscale("log")
-    
-    plt.savefig(os.path.join(matched_filtered_comparison_output_path, "custom", f"{col}.png"))
-    plt.close()
-
-print("Created matched + filtered comparison plots with custom binning")
-
+# print("Created matched comparison plots with default binning")
 
 
 
