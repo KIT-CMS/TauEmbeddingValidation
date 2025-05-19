@@ -79,33 +79,43 @@ get_nth_element = np.vectorize(get_nth_element, otypes=[np.float32]) #function t
 get_subarray_length = np.vectorize(get_subarray_length, otypes=[np.int32]) #function that extracts the 1st element of a subarray for flattening the data
 
 
-def get_z_m_pt(df):
-    #finds for each event the muon pair that fits best to the z boson mass. returns arrays with the mass and pt of the best fitting pair
-    m_z = 91.1880
-    n_muon = get_nmuon(df, "eta_")
-    n_events = len(df)
-    m_vis = np.full((n_events,n_muon,n_muon), np.nan)
-    pt_vis = np.full((n_events,n_muon,n_muon), np.nan)
+# def get_z_m_pt(df):
+#     #finds for each event the muon pair that fits best to the z boson mass. returns arrays with the mass and pt of the best fitting pair
+#     m_z = 91.1880
+#     n_muon = get_nmuon(df, "eta_")
+#     n_events = len(df)
+#     m_vis = np.full((n_events,n_muon,n_muon), np.nan)
+#     pt_vis = np.full((n_events,n_muon,n_muon), np.nan)
 
-    #calculates mvis and pt for each muon pair
-    for n1 in range(1, n_muon+1):
-        for n2 in range(1, n_muon+1):
-            m_vis[:,n1-1, n2-1] = generate_m_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
-            pt_vis[:,n1-1, n2-1] = generate_pt_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
+#     #calculates mvis and pt for each muon pair
+#     for n1 in range(1, n_muon+1):
+#         for n2 in range(1, n_muon+1):
+#             m_vis[:,n1-1, n2-1] = generate_m_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
+#             pt_vis[:,n1-1, n2-1] = generate_pt_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
     
-    #calculates difference from z boson mass
-    z_difference = np.absolute(np.copy(m_vis-m_z))
+#     #calculates difference from z boson mass
+#     z_difference = np.absolute(np.copy(m_vis-m_z))
 
-    #finds index of best fitting muon pair for each event
-    min_indices = np.nanargmin(z_difference.reshape(n_events, -1), axis=1)
+#     #finds index of best fitting muon pair for each event
+#     min_indices = np.nanargmin(z_difference.reshape(n_events, -1), axis=1)
 
-    #converts previously reshaped array into to 2d array
-    row_col_indices = np.array([np.unravel_index(idx, (n_muon, n_muon)) for idx in min_indices])
+#     #converts previously reshaped array into to 2d array
+#     row_col_indices = np.array([np.unravel_index(idx, (n_muon, n_muon)) for idx in min_indices])
 
-    #extracts values of ideal muon pairs
-    m_vis = m_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
-    pt_vis = pt_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
+#     #extracts values of ideal muon pairs
+#     m_vis = m_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
+#     pt_vis = pt_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
     
+#     return m_vis, pt_vis
+
+def get_z_m_pt(df, data=False):
+    if data:
+        m_vis = generate_m_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
+        pt_vis = generate_pt_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
+    else:
+        m_vis = generate_m_vis(df[f"LM_pt_matched"], df[f"LM_eta_matched"], df[f"LM_phi_matched"], df[f"LM_m_matched"], df[f"TM_pt_matched"], df[f"TM_eta_matched"], df[f"TM_phi_matched"], df[f"TM_m_matched"])
+        pt_vis = generate_pt_vis(df[f"LM_pt_matched"], df[f"LM_eta_matched"], df[f"LM_phi_matched"], df[f"LM_m_matched"], df[f"TM_pt_matched"], df[f"TM_eta_matched"], df[f"TM_phi_matched"], df[f"TM_m_matched"])
+
     return m_vis, pt_vis
 
 

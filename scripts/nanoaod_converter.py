@@ -75,35 +75,36 @@ print("Copied:", selection_q_converted)
 
 
 
+dr = calculate_dr(data_df, 5, filter=None)
+data_df_matched = apply_genmatching(dr.copy(), data_df.copy(deep=True))
+dr = calculate_dr(emb_df, 5, filter=None)
+emb_df_matched = apply_genmatching(dr.copy(), emb_df.copy(deep=True))
 
+# filter_list = get_filter_list()
 
+# dr = calculate_dr(data_df, 5, filter=filter_list)
+# data_df_matched_filtered = apply_genmatching(dr.copy(), data_df.copy(deep=True))
+# dr = calculate_dr(emb_df, 5, filter=filter_list)
+# emb_df_matched_filtered = apply_genmatching(dr.copy(), emb_df.copy(deep=True))
 
-dr = calculate_dr(data_df, emb_df, 2, 5, filter=None)
-emb_df_matched = apply_genmatching(dr.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
-
-filter_list = get_filter_list()
-
-dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=filter_list)
-emb_df_matched_filtered = apply_genmatching(dr_filtered.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
 
 print("Genmatching applied")
 
-detect_changes(emb_df, emb_df_matched, ["phi_1", "pt_1", "eta_1"])
-detect_changes(emb_df, emb_df_matched_filtered, ["phi_1", "pt_1", "eta_1"])
-
-
-data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
-emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
-# data_df["pt_vis"] = data_df["pt_1"] + data_df["pt_2"]
-# emb_df["pt_vis"] = emb_df["pt_1"] + emb_df["pt_2"]
+data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df, data=True)
+data_df_matched["m_vis"], data_df_matched["pt_vis"] = get_z_m_pt(data_df_matched, data=True)
+# data_df_matched_filtered["m_vis"], data_df_matched_filtered["pt_vis"] = get_z_m_pt(data_df_matched_filtered, data=True)
+emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched, data=False)
+# emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered, data=False)
 
 print("Added m_vis and pt_vis")
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
-store.put("data_df", data_df, index=False)
-store.put("emb_df", emb_df, index=False)
+# store.put("data_df", data_df, index=False)
+# store.put("emb_df", emb_df, index=False)
+store.put("data_df_matched", data_df_matched, index=False)
 store.put("emb_df_matched", emb_df_matched, index=False)
-store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
+# store.put("data_df_matched_filtered", data_df_matched_filtered, index=False)
+# store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
 store.close()
 
 print("Data stored in hdf store")

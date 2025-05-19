@@ -6,8 +6,8 @@ import vector
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
-    # {"col":"pt", "min":27, "max":np.inf, "emb":True, "data":True},
-    # {"col":"eta", "min":-2.5, "max":2.5, "emb":True, "data":True},
+    # {"col":"pt", "min":27, "max":np.inf},
+    # {"col":"eta", "min":-2.5, "max":2.5},
     # {"col":"pt_ratio", "min":0.75, "max":1.25}
 ]
 
@@ -17,17 +17,22 @@ def get_filter_list():
 
 
 #following code is for genmatching
-def calculate_dr(data_df, emb_df, n_data, n_emb, filter=None):
+def calculate_dr(df, n_muon, filter=None):
     #this function returns the dr value for all particle combination from embedding
     #the first "n_data" particles of data are compare to the first "n_emb" particles of the embeddign dataset
 
-    dr_arr = np.full(shape=(len(data_df), n_data, n_emb), dtype=float, fill_value=np.nan)
+    dr_arr = np.full(shape=(len(df), 2, n_muon), dtype=float, fill_value=np.nan)
 
     #looping over all data particle and embedding particle combinations
-    for n_d in range(1, n_data+1):
-        for n_e in range(1, n_emb+1):
-            eta_diff = subtract_columns(data_df[f"eta_{n_d}"], emb_df[f"eta_{n_e}"], "eta_")
-            phi_diff = subtract_columns(data_df[f"phi_{n_d}"], emb_df[f"phi_{n_e}"], "phi_")
+    for n in range(1, 3):
+        if n == 1:
+            col_name = "LM"#first comparing to leading muon
+        elif n == 2:
+            col_name = "TM"#then comparing to trailing muon
+
+        for n_m in range(1, n_muon+1):
+            eta_diff = subtract_columns(df[f"{col_name}_eta"], df[f"eta_{n_m}"], "eta_")
+            phi_diff = subtract_columns(df[f"{col_name}_phi"], df[f"phi_{n_m}"], "phi_")
 
             #calculating the dr value between them for all events
             dr_temp = np.sqrt(np.square(eta_diff) + np.square(phi_diff))
@@ -39,29 +44,23 @@ def calculate_dr(data_df, emb_df, n_data, n_emb, filter=None):
                     min_val = f["min"]
                     max_val = f["max"]
                     #filter on dr and pt ratio have to be treated separately because they are no nanoaod columns
-                    if basename != "dr" and basename != "pt_ratio":
-                        if f["emb"]:
-                            mask1 = emb_df[f"{basename}_{n_e}"] < min_val 
-                            mask2 = emb_df[f"{basename}_{n_e}"] > max_val 
-                            mask = np.logical_or(mask1, mask2)
-                            dr_temp[mask] = np.nan
-                        if f["data"]:
-                            mask1 = data_df[f"{basename}_{n_d}"] < min_val 
-                            mask2 = data_df[f"{basename}_{n_d}"] > max_val 
-                            mask = np.logical_or(mask1, mask2)
-                            dr_temp[mask] = np.nan
+                    if basename != "dr" and basename != "pt_ratio":#in this case the filter is applied on existing columns from df
+                        mask1 = df[f"{basename}_{n_m}"] < min_val 
+                        mask2 = df[f"{basename}_{n_m}"] > max_val 
+                        mask = np.logical_or(mask1, mask2)
+                        dr_temp[mask] = np.nan
                     elif basename == "dr":
                         mask1 = dr_temp < min_val
                         mask2 = dr_temp > max_val
                         mask = np.logical_or(mask1, mask2)
                         dr_temp[mask] = np.nan
                     elif basename == "pt_ratio":
-                        pt_ratio = data_df[f"pt_{n_d}"]/ emb_df[f"pt_{n_e}"]
+                        pt_ratio = df[f"{col_name}_pt"]/ df[f"pt_{n_m}"]
                         mask1 = pt_ratio < min_val
                         mask2 = pt_ratio > max_val
                         mask = np.logical_or(mask1, mask2)
                         dr_temp[mask] = np.nan
-            dr_arr[:, n_d-1, n_e-1] = dr_temp
+            dr_arr[:, n-1, n_m-1] = dr_temp
 
     return dr_arr
 
@@ -82,9 +81,18 @@ def remove_emb_mu_from_dist(dist, id):
         dist[:, id] = np.nan
     return dist
 
-
-def apply_genmatching(dr_arr, df, switch_quantities):
+def apply_genmatching(dr_arr, df):
     #switches data for those entries where an emb muon closer to the original one is present
+    target_length = len(df)
+    lm_pt = np.full(target_length, fill_value=np.nan)
+    tm_pt = np.full(target_length, fill_value=np.nan)
+    lm_phi = np.full(target_length, fill_value=np.nan)
+    tm_phi = np.full(target_length, fill_value=np.nan)
+    lm_eta = np.full(target_length, fill_value=np.nan)
+    tm_eta = np.full(target_length, fill_value=np.nan)
+    lm_m = np.full(target_length, fill_value=np.nan)
+    tm_m = np.full(target_length, fill_value=np.nan)
+
     for n_event in range(len(df)):
         distances = dr_arr[n_event, :, :]
         
@@ -110,19 +118,35 @@ def apply_genmatching(dr_arr, df, switch_quantities):
                 muon1_id = find_closest_muon(distances[0, :])
 
         #else: #does not matter
-        
+        event = df.iloc[n_event]
+
         #ignoring nans
-        if np.isnan([muon1_id, muon2_id]).sum() == 0:
-            #nothing to change if best fit is trivial
-            if muon1_id != 0 and muon2_id != 1:
-                for q_name in switch_quantities:
-                    #check whether quantity should be updated
-                    temp1 = df.loc[n_event, f"{q_name}_{muon1_id+1}"]
-                    temp2 = df.loc[n_event, f"{q_name}_{muon2_id+1}"]
-                    #updating quantity
-                    df.loc[n_event, f"{q_name}_1"] = temp1
-                    df.loc[n_event, f"{q_name}_2"] = temp2
+        if ~np.isnan(muon1_id):
+            lm_pt[n_event] = event[f"pt_{muon1_id+1}"]
+            lm_eta[n_event] = event[f"eta_{muon1_id+1}"]
+            lm_phi[n_event] = event[f"phi_{muon1_id+1}"]
+            lm_m[n_event] = event[f"m_{muon1_id+1}"]
+
+        if ~np.isnan(muon2_id):
+            tm_pt[n_event] = event[f"pt_{muon2_id+1}"]
+            tm_eta[n_event] = event[f"eta_{muon2_id+1}"]
+            tm_phi[n_event] = event[f"phi_{muon2_id+1}"]
+            tm_m[n_event] = event[f"m_{muon2_id+1}"]
+
+
+    matched_df = pd.DataFrame({
+        "LM_pt_matched": pd.Series(lm_pt),
+        "TM_pt_matched": pd.Series(tm_pt),
+        "LM_eta_matched": pd.Series(lm_eta),
+        "TM_eta_matched": pd.Series(tm_eta),
+        "LM_phi_matched": pd.Series(lm_phi),
+        "TM_phi_matched": pd.Series(tm_phi),
+        "LM_m_matched": pd.Series(lm_m),
+        "TM_m_matched": pd.Series(tm_m)
+    })
+    df[["LM_pt_matched", "TM_pt_matched", "LM_eta_matched", "TM_eta_matched", "LM_phi_matched", "TM_phi_matched", "LM_m_matched", "TM_m_matched"]] = matched_df
     return df
+
 
 
 def get_closest_muon_data(dr_arr):
