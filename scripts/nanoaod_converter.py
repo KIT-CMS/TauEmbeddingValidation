@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, verify_events, initialize_dir, create_concordant_subsets
+from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, verify_events, initialize_dir, create_concordant_subsets, copy_columns_from_to
 from genmatching import calculate_dr, apply_genmatching, detect_changes, get_filter_list
 
 # data_path = "./data/2022G-nanoaod/2022G-data.root"
@@ -36,8 +36,7 @@ data_quantities = [
     {"key":"event",             "target":"event",           "expand":False}
 ]
 
-emb_quantities = data_quantities.copy()
-emb_quantities += [
+selection_q = [
     {"key":"TauEmbedding_chargeLeadingMuon",		"target":"LM_charge",	"expand":False },
     {"key":"TauEmbedding_chargeTrailingMuon",		"target":"TM_charge",	"expand":False },
     {"key":"TauEmbedding_phiLeadingMuon",		    "target":"LM_phi",		"expand":False },
@@ -49,6 +48,10 @@ emb_quantities += [
     {"key":"TauEmbedding_massLeadingMuon",		    "target":"LM_m",		"expand":False },
     {"key":"TauEmbedding_massTrailingMuon",		    "target":"TM_m",		"expand":False },
 ]
+
+emb_quantities = data_quantities.copy()
+emb_quantities += selection_q
+
 
 
 print("Loading data")
@@ -65,18 +68,18 @@ verify_events(data_df, emb_df)
 
 print("Data ok")
 
+selection_q_converted = [element["target"] for element in selection_q]
+data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
 
-data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
-emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
-# data_df["pt_vis"] = data_df["pt_1"] + data_df["pt_2"]
-# emb_df["pt_vis"] = emb_df["pt_1"] + emb_df["pt_2"]
+print("Copied:", selection_q_converted)
 
-print("Added m_vis and pt_vis")
+
+
+
 
 
 dr = calculate_dr(data_df, emb_df, 2, 5, filter=None)
 emb_df_matched = apply_genmatching(dr.copy(), emb_df.copy(deep=True), ["phi", "pt", "eta", "m"])
-
 
 filter_list = get_filter_list()
 
@@ -86,9 +89,15 @@ emb_df_matched_filtered = apply_genmatching(dr_filtered.copy(), emb_df.copy(deep
 print("Genmatching applied")
 
 detect_changes(emb_df, emb_df_matched, ["phi_1", "pt_1", "eta_1"])
-
 detect_changes(emb_df, emb_df_matched_filtered, ["phi_1", "pt_1", "eta_1"])
 
+
+data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
+emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
+# data_df["pt_vis"] = data_df["pt_1"] + data_df["pt_2"]
+# emb_df["pt_vis"] = emb_df["pt_1"] + emb_df["pt_2"]
+
+print("Added m_vis and pt_vis")
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
 store.put("data_df", data_df, index=False)

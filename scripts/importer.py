@@ -170,10 +170,10 @@ def create_concordant_subsets(df1, df2):
     l1 = len(df1)
     l2 = len(df1)
 
+    keys = ["run", "lumi", "event"]
     df1 = df1.sort_values(by=keys, ignore_index=True)
     df2 = df2.sort_values(by=keys, ignore_index=True)
 
-    keys = ["run", "lumi", "event"]
     mask = df1[keys].merge(df2[keys], how="inner")
 
     l3 = len(mask)
@@ -183,3 +183,9 @@ def create_concordant_subsets(df1, df2):
     df2 = df2.merge(mask, how="inner")
 
     return df1, df2
+
+def copy_columns_from_to(from_df, to_df, columns):
+    cols_to_copy = from_df[columns].copy(deep=True)
+    to_df[columns] = cols_to_copy
+
+    return from_df, to_df
