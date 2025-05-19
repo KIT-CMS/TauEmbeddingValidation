@@ -164,3 +164,22 @@ def initialize_dir(base_path: str, subfolders: list[str]=None):
         # Create subfolders 
         for sub in subfolders:
             (base_dir / sub).mkdir(parents=True, exist_ok=True)
+
+
+def create_concordant_subsets(df1, df2):
+    l1 = len(df1)
+    l2 = len(df1)
+
+    df1 = df1.sort_values(by=keys, ignore_index=True)
+    df2 = df2.sort_values(by=keys, ignore_index=True)
+
+    keys = ["run", "lumi", "event"]
+    mask = df1[keys].merge(df2[keys], how="inner")
+
+    l3 = len(mask)
+    print(f"Previous lengths: {l1}, {l2} - New length: {l3}")
+
+    df1 = df1.merge(mask, how="inner")
+    df2 = df2.merge(mask, how="inner")
+
+    return df1, df2

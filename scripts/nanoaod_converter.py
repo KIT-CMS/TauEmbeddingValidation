@@ -5,11 +5,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, verify_events, initialize_dir
+from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, verify_events, initialize_dir, create_concordant_subsets
 from genmatching import calculate_dr, apply_genmatching, detect_changes, get_filter_list
 
-data_path = "./data/2022G-nanoaod/2022G-data.root"
-emb_path = "./data/2022G-nanoaod/2022G-emb.root"
+# data_path = "./data/2022G-nanoaod/2022G-data.root"
+# emb_path = "./data/2022G-nanoaod/2022G-emb.root"
+data_path = "./data/2022G-nanoaod_gen/2022G-data.root"
+emb_path = "./data/2022G-nanoaod_gen/2022G-emb_gen.root"
 
 output_path = "./data/converted"
 
@@ -17,7 +19,7 @@ initialize_dir(output_path)
 
 print("Directory initialized")
 
-quantities = [
+data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
     {"key":"PuppiMET_phi",      "target":"PuppiMET_phi",    "expand":False},
     {"key":"PuppiMET_sumEt",    "target":"PuppiMET_sumEt",  "expand":False},
@@ -34,18 +36,30 @@ quantities = [
     {"key":"event",             "target":"event",           "expand":False}
 ]
 
+emb_quantities = data_quantities.copy()
+emb_quantities += [
+    {"key":"TauEmbedding_chargeLeadingMuon",		"target":"LM_charge",	"expand":False },
+    {"key":"TauEmbedding_chargeTrailingMuon",		"target":"TM_charge",	"expand":False },
+    {"key":"TauEmbedding_phiLeadingMuon",		    "target":"LM_phi",		"expand":False },
+    {"key":"TauEmbedding_phiTrailingMuon",		    "target":"TM_phi",		"expand":False },
+    {"key":"TauEmbedding_ptLeadingMuon",		    "target":"LM_pt",		"expand":False },
+    {"key":"TauEmbedding_ptTrailingMuon",		    "target":"TM_pt",		"expand":False },
+    {"key":"TauEmbedding_etaLeadingMuon",		    "target":"LM_eta",		"expand":False },
+    {"key":"TauEmbedding_etaTrailingMuon",		    "target":"TM_eta",		"expand":False },
+    {"key":"TauEmbedding_massLeadingMuon",		    "target":"LM_m",		"expand":False },
+    {"key":"TauEmbedding_massTrailingMuon",		    "target":"TM_m",		"expand":False },
+]
+
+
 print("Loading data")
 
 
-data_df = nanoaod_to_dataframe(data_path=data_path, quantities=quantities)
-emb_df = nanoaod_to_dataframe(data_path=emb_path, quantities=quantities)
+data_df = nanoaod_to_dataframe(data_path=data_path, quantities=data_quantities)
+emb_df = nanoaod_to_dataframe(data_path=emb_path, quantities=emb_quantities)
 
 print("Data loaded")
 
-
-data_df = data_df.sort_values(by=["run", "lumi", "event"], ignore_index=True)
-emb_df = emb_df.sort_values(by=["run", "lumi", "event"], ignore_index=True)
-
+data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
 verify_events(data_df, emb_df)
 
