@@ -20,15 +20,15 @@ initialize_dir(dr_plot_path)
 print("Directory initialized")
 
 data_df = pd.read_hdf(hdf_path, "data_df")
-emb_df = pd.read_hdf(hdf_path, "emb_df")
+emb_df = pd.read_hdf(hdf_path, "emb_df_matched")
 
 verify_events(data_df, emb_df)
 
 print("Data loaded and verified")
 
 filter_list = get_filter_list()
-dr_unfiltered = calculate_dr(data_df, emb_df, 2, 5, filter=None)
-dr_filtered = calculate_dr(data_df, emb_df, 2, 5, filter=filter_list)
+dr_unfiltered = calculate_dr(emb_df, 5, filter=None)
+dr_filtered = calculate_dr(emb_df, 5, filter=filter_list)
 
 ax = q_comparison(dr_filtered[:,0,0], dr_unfiltered[:,0,0], np.linspace(0,6), r"$\Delta r_\text{filtered}$", r"$\Delta r_\text{unfiltered}$", r"$\Delta r$")
 ax[0].set_yscale("log")
@@ -38,7 +38,7 @@ plt.close()
 #creating plots twice (1. with filter, then without)
 for filter in [filter_list, None]:
     
-    dr = calculate_dr(data_df, emb_df, 2, 5, filter=filter)
+    dr = calculate_dr(emb_df, 5, filter=filter)
     mu_index, mu_dr = get_closest_muon_data(dr)
 
     if filter:

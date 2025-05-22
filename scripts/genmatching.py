@@ -135,16 +135,16 @@ def apply_genmatching(dr_arr, df):
 
 
     matched_df = pd.DataFrame({
-        "LM_pt_matched": pd.Series(lm_pt),
-        "TM_pt_matched": pd.Series(tm_pt),
-        "LM_eta_matched": pd.Series(lm_eta),
-        "TM_eta_matched": pd.Series(tm_eta),
-        "LM_phi_matched": pd.Series(lm_phi),
-        "TM_phi_matched": pd.Series(tm_phi),
-        "LM_m_matched": pd.Series(lm_m),
-        "TM_m_matched": pd.Series(tm_m)
+        "LM_pt": pd.Series(lm_pt),
+        "TM_pt": pd.Series(tm_pt),
+        "LM_eta": pd.Series(lm_eta),
+        "TM_eta": pd.Series(tm_eta),
+        "LM_phi": pd.Series(lm_phi),
+        "TM_phi": pd.Series(tm_phi),
+        "LM_m": pd.Series(lm_m),
+        "TM_m": pd.Series(tm_m)
     })
-    df[["LM_pt_matched", "TM_pt_matched", "LM_eta_matched", "TM_eta_matched", "LM_phi_matched", "TM_phi_matched", "LM_m_matched", "TM_m_matched"]] = matched_df
+    df[["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"]] = matched_df
     return df
 
 

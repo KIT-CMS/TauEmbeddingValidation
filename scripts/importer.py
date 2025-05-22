@@ -108,13 +108,9 @@ get_subarray_length = np.vectorize(get_subarray_length, otypes=[np.int32]) #func
     
 #     return m_vis, pt_vis
 
-def get_z_m_pt(df, data=False):
-    if data:
-        m_vis = generate_m_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
-        pt_vis = generate_pt_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
-    else:
-        m_vis = generate_m_vis(df[f"LM_pt_matched"], df[f"LM_eta_matched"], df[f"LM_phi_matched"], df[f"LM_m_matched"], df[f"TM_pt_matched"], df[f"TM_eta_matched"], df[f"TM_phi_matched"], df[f"TM_m_matched"])
-        pt_vis = generate_pt_vis(df[f"LM_pt_matched"], df[f"LM_eta_matched"], df[f"LM_phi_matched"], df[f"LM_m_matched"], df[f"TM_pt_matched"], df[f"TM_eta_matched"], df[f"TM_phi_matched"], df[f"TM_m_matched"])
+def get_z_m_pt(df):
+    m_vis = generate_m_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
+    pt_vis = generate_pt_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
 
     return m_vis, pt_vis
 
