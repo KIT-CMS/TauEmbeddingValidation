@@ -28,74 +28,75 @@ verify_events(data_df, emb_df_matched)
 
 print("Data loaded and verified")
 
+nbins = 35
 
 plotting_instructions = [
     {"col":"Jet_eta",           
-        "bins":np.linspace(-5, 5, 25),          
+        "bins":np.linspace(-5, 5, nbins),          
         "title":r"LJet eta",                 
         "ylog":True,    
         "xlog":False},
     {"col":"Jet_mass",          
-        "bins":np.linspace(0, 100, 25),         
+        "bins":np.linspace(0, 100, nbins),         
         "title":r"LJet mass/ GeV",           
         "ylog":True,    "xlog":False},
     {"col":"Jet_phi",           
-        "bins":np.linspace(-3.5, 3.5, 25),      
+        "bins":np.linspace(-3.5, 3.5, nbins),      
         "title":r"LJet $\phi$",              
         "ylog":True,    
         "xlog":False}, 
     {"col":"LM_eta",             
-        "bins":np.linspace(-2.5, 2.5, 25),      
+        "bins":np.linspace(-2.5, 2.5, nbins),      
         "title":r"$\eta_\text{µ1}$",             
         "ylog":True,    
         "xlog":False},   
     {"col":"LM_phi",              
-        "bins":np.linspace(-3.5, 3.5, 25),         
+        "bins":np.linspace(-3.5, 3.5, nbins),         
         "title":r"$\phi_\text{µ1}$",  
         "ylog":True,    
         "xlog":False},
     {"col":"LM_pt",              
-        "bins":np.linspace(0, 300, 25),         
+        "bins":np.linspace(0, 300, nbins),         
         "title":r"$p_\text{T, µ1}$/ GeV",  
         "ylog":True,    
         "xlog":False},
     {"col":"m_vis",             
-        "bins":np.linspace(0, 200, 25),         
+        "bins":np.linspace(0, 200, nbins),         
         "title":r"$m_\text{µµ}$/ GeV",             
         "ylog":True,    
         "xlog":False},
     {"col":"pt_vis",            
-        "bins":np.linspace(0, 200, 25),        
+        "bins":np.linspace(0, 200, nbins),        
         "title":r"$p_\text{T, µµ}$/ GeV",           
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_phi",      
-        "bins":np.linspace(-3.5, 3.5, 25),      
+        "bins":np.linspace(-3.5, 3.5, nbins),      
         "title":r"Missing $p_{T, \phi}$",           
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_pt",       
-        "bins":np.linspace(0, 150, 25),         
+        "bins":np.linspace(0, 150, nbins),         
         "title":r"Missing $p_{T}$ / GeV",           
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_sumEt",    
-        "bins":np.linspace(0, 700, 25),         
+        "bins":np.linspace(0, 700, nbins),         
         "title":r"Missing $E_\text{T}$ / GeV",      
         "ylog":True,    
         "xlog":False},
     {"col":"TM_eta",             
-        "bins":np.linspace(-2.5, 2.5, 25),      
+        "bins":np.linspace(-2.5, 2.5, nbins),      
         "title":r"$\eta_\text{µ2}$",             
         "ylog":True,    
         "xlog":False},   
     {"col":"TM_phi",              
-        "bins":np.linspace(-3.5, 3.5, 25),         
+        "bins":np.linspace(-3.5, 3.5, nbins),         
         "title":r"$\phi_\text{µ2}$",  
         "ylog":True,    
         "xlog":False},
     {"col":"TM_pt",              
-        "bins":np.linspace(0, 300, 25),         
+        "bins":np.linspace(0, 300, nbins),         
         "title":r"$p_\text{T, µ2}$/ GeV",  
         "ylog":True,    
         "xlog":False},
@@ -113,7 +114,7 @@ plotting_instructions = [
 for quantity in plotting_instructions:
     for mode in ["custom", "default"]:
         if mode == "default":
-            bins = 25
+            bins = nbins
         elif mode == "custom":
             bins = quantity["bins"]
 
@@ -155,7 +156,7 @@ print("Created control plots ")
 for quantity in plotting_instructions:
     for mode in ["custom", "default"]:
         if mode == "default":
-            bins = 25
+            bins = nbins
         elif mode == "custom":
             bins = quantity["bins"]
 
