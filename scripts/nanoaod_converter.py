@@ -22,7 +22,7 @@ print("Directory initialized")
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
     {"key":"PuppiMET_phi",      "target":"PuppiMET_phi",    "expand":False},
-    {"key":"PuppiMET_sumEt",    "target":"PuppiMET_sumEt",  "expand":False},
+    # {"key":"PuppiMET_sumEt",    "target":"PuppiMET_sumEt",  "expand":False},
     {"key":"Muon_phi",          "target":"phi",             "expand":True},
     {"key":"Muon_pt",           "target":"pt",              "expand":True},
     {"key":"Muon_eta",          "target":"eta",             "expand":True},
