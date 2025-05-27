@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from plotting import control_plot, nq_comparison, q_comparison
-from importer import verify_events, initialize_dir
-from genmatching import detect_changes
+from plotting import control_plot, nq_comparison
+from importer import initialize_dir
+from helper import verify_events
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 comparison_output_path = "./output/control_plots/comparison"

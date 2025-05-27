@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from plotting import histogram, nq_comparison
-from importer import verify_events, initialize_dir
-from genmatching import detect_changes, subtract_columns, divide_columns
+from plotting import histogram
+from importer import initialize_dir
+from genmatching import subtract_columns
+from helper import divide_columns, verify_events
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 
@@ -115,14 +116,6 @@ plotting_instructions = [
         "relative":False,
         "ylog":True,    
         "xlog":False},
-    # {"col":"PuppiMET_sumEt",    
-    #     "bins":np.linspace(0, 700, nbins),         
-    #     "rel_bins":np.linspace(0, 10, nbins),         
-    #     "title":r"$(E_\text{miss, emb}$ - $E_\text{miss, data}$) / GeV",      
-    #     "rel_title":r"$(E_\text{miss, emb}$ - $E_\text{miss, data})$ / $E_\text{miss, data}$",      
-    #     "relative":False,
-    #     "ylog":True,    
-    #     "xlog":False},
     {"col":"TM_eta",             
         "bins":np.linspace(0, 2.5, nbins),    
         "rel_bins":np.linspace(0, 0.1, nbins),    
@@ -192,7 +185,7 @@ plotting_instructions = [
 #         plt.savefig(os.path.join(comparison_output_path, mode, f"{col}.png"))
 #         plt.close()
 
-print("Created triple comparison plots")
+# print("Created triple comparison plots")
 
 
 

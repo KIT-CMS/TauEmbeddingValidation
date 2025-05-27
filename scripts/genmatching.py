@@ -2,7 +2,7 @@ import uproot
 import os
 import pandas as pd
 import numpy as np
-import vector
+from helper import subtract_columns
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
@@ -180,55 +180,3 @@ def get_closest_muon_data(dr_arr):
     
     return index, mu_dr
 
-
-
-def detect_changes(df1, df2, columns:list):
-    #compares how many elements in the series object are different between two dfs
-    res = ""
-    for column in columns:
-        temp = df1[column] - df2[column]
-        mask1 = ~np.isnan(temp)
-        mask2 = temp != 0
-        mask = np.logical_and(mask1, mask2)
-        count = mask.sum()
-        res += f"{column}: {count}; "
-    print(res + "rows different")
-
-
-
-def subtract_columns(col1, col2, col_name:str):
-    #allows to subtract two columns while treating phi specially
-    if not "phi" in col_name:
-        diff = np.abs(col1 - col2)
-    #phi needs to be handled differently because the value must be lower than pi
-    else:
-        diff = np.abs(col1 - col2)
-
-        mask = diff > np.pi
-        
-        diff[mask] = 2*np.pi - diff[mask]
-
-    return diff
-
-
-def divide_columns(numerator, divisor):
-    #divides columns wile avoiding dividing by zero warnings and nan errors
-    mask1 = divisor != 0
-    mask2 = ~np.isnan(divisor)
-    mask3 = ~np.isnan(numerator)
-
-    mask = np.logical_and(mask1, mask2)
-    mask = np.logical_and(mask, mask3)
-
-    q = np.full_like(numerator, np.nan)
-    q[mask] = numerator[mask]/ divisor[mask]
-
-    return q
-
-def get_matching_df(df, rm_cols):
-    #this function copies a dataframe so that the original data stays untouched and also removes columns that are unwanted in the resulting dataset
-    df_copy = df.copy(deep=True)
-    for col in rm_cols:
-        del df_copy[col]
-
-    return df_copy

@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from importer import nanoaod_to_dataframe, compare_cells, get_z_m_pt, verify_events, initialize_dir, create_concordant_subsets, copy_columns_from_to
-from genmatching import calculate_dr, apply_genmatching, detect_changes, get_filter_list, get_matching_df
+from importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
+from genmatching import calculate_dr, apply_genmatching, get_filter_list
+from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df
+
 
 # data_path = "./data/2022G-nanoaod/2022G-data.root"
 # emb_path = "./data/2022G-nanoaod/2022G-emb.root"
@@ -22,7 +24,6 @@ print("Directory initialized")
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
     {"key":"PuppiMET_phi",      "target":"PuppiMET_phi",    "expand":False},
-    # {"key":"PuppiMET_sumEt",    "target":"PuppiMET_sumEt",  "expand":False},
     {"key":"Muon_phi",          "target":"phi",             "expand":True},
     {"key":"Muon_pt",           "target":"pt",              "expand":True},
     {"key":"Muon_eta",          "target":"eta",             "expand":True},

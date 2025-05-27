@@ -61,6 +61,7 @@ def get_nth_element(array, n):
     return np.nan
 
 def column_is_nested(array):
+    #returns whether elements in cells are arrays or scalars
     try:
         sub_length = len(array[0])
         return True
@@ -70,43 +71,10 @@ def column_is_nested(array):
 def get_subarray_length(array):
     return len(array)
 
-def compare_cells(column1, column2):
-    test = column1 - column2
-    assert len(test[test!=0]) == 0, "Mismatch"
-
 
 get_nth_element = np.vectorize(get_nth_element, otypes=[np.float32]) #function that extracts the 1st element of a subarray for flattening the data
 get_subarray_length = np.vectorize(get_subarray_length, otypes=[np.int32]) #function that extracts the 1st element of a subarray for flattening the data
 
-
-# def get_z_m_pt(df):
-#     #finds for each event the muon pair that fits best to the z boson mass. returns arrays with the mass and pt of the best fitting pair
-#     m_z = 91.1880
-#     n_muon = get_nmuon(df, "eta_")
-#     n_events = len(df)
-#     m_vis = np.full((n_events,n_muon,n_muon), np.nan)
-#     pt_vis = np.full((n_events,n_muon,n_muon), np.nan)
-
-#     #calculates mvis and pt for each muon pair
-#     for n1 in range(1, n_muon+1):
-#         for n2 in range(1, n_muon+1):
-#             m_vis[:,n1-1, n2-1] = generate_m_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
-#             pt_vis[:,n1-1, n2-1] = generate_pt_vis(df[f"pt_{n1}"], df[f"eta_{n1}"], df[f"phi_{n1}"], df[f"m_{n1}"], df[f"pt_{n2}"], df[f"eta_{n2}"], df[f"phi_{n2}"], df[f"m_{n2}"])
-    
-#     #calculates difference from z boson mass
-#     z_difference = np.absolute(np.copy(m_vis-m_z))
-
-#     #finds index of best fitting muon pair for each event
-#     min_indices = np.nanargmin(z_difference.reshape(n_events, -1), axis=1)
-
-#     #converts previously reshaped array into to 2d array
-#     row_col_indices = np.array([np.unravel_index(idx, (n_muon, n_muon)) for idx in min_indices])
-
-#     #extracts values of ideal muon pairs
-#     m_vis = m_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
-#     pt_vis = pt_vis[np.arange(n_events), row_col_indices[:, 0], row_col_indices[:, 1]]
-    
-#     return m_vis, pt_vis
 
 def get_z_m_pt(df):
     m_vis = generate_m_vis(df[f"LM_pt"], df[f"LM_eta"], df[f"LM_phi"], df[f"LM_m"], df[f"TM_pt"], df[f"TM_eta"], df[f"TM_phi"], df[f"TM_m"])
@@ -145,16 +113,6 @@ def generate_pt_vis(pt_1, eta_1, phi_1, m_1, pt_2, eta_2, phi_2, m_2):
     return pt_vis
 
 
-def verify_events(*data):
-    #checks whether all dataframes have the same order
-    master_df = data[0]
-
-    for df in data:
-        compare_cells(master_df["event"].values, df["event"].values)
-        compare_cells(master_df["lumi"].values, df["lumi"].values)
-        compare_cells(master_df["run"].values, df["run"].values)
-
-
 def initialize_dir(base_path: str, subfolders: list[str]=None):
 
     base_dir = Path(base_path)
@@ -171,27 +129,3 @@ def initialize_dir(base_path: str, subfolders: list[str]=None):
         for sub in subfolders:
             (base_dir / sub).mkdir(parents=True, exist_ok=True)
 
-
-def create_concordant_subsets(df1, df2):
-    l1 = len(df1)
-    l2 = len(df1)
-
-    keys = ["run", "lumi", "event"]
-    df1 = df1.sort_values(by=keys, ignore_index=True)
-    df2 = df2.sort_values(by=keys, ignore_index=True)
-
-    mask = df1[keys].merge(df2[keys], how="inner")
-
-    l3 = len(mask)
-    print(f"Previous lengths: {l1}, {l2} - New length: {l3}")
-
-    df1 = df1.merge(mask, how="inner")
-    df2 = df2.merge(mask, how="inner")
-
-    return df1, df2
-
-def copy_columns_from_to(from_df, to_df, columns):
-    cols_to_copy = from_df[columns].copy(deep=True)
-    to_df[columns] = cols_to_copy
-
-    return from_df, to_df
