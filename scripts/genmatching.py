@@ -6,8 +6,8 @@ import vector
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
-    # {"col":"pt", "min":27, "max":np.inf},
-    # {"col":"eta", "min":-2.5, "max":2.5},
+    {"col":"pt", "min":27, "max":np.inf},
+    {"col":"eta", "min":-2.5, "max":2.5},
     # {"col":"pt_ratio", "min":0.75, "max":1.25}
 ]
 
@@ -126,12 +126,22 @@ def apply_genmatching(dr_arr, df):
             lm_eta[n_event] = event[f"eta_{muon1_id+1}"]
             lm_phi[n_event] = event[f"phi_{muon1_id+1}"]
             lm_m[n_event] = event[f"m_{muon1_id+1}"]
+        else:
+            lm_pt[n_event] = np.nan
+            lm_eta[n_event] = np.nan
+            lm_phi[n_event] = np.nan
+            lm_m[n_event] = np.nan
 
         if ~np.isnan(muon2_id):
             tm_pt[n_event] = event[f"pt_{muon2_id+1}"]
             tm_eta[n_event] = event[f"eta_{muon2_id+1}"]
             tm_phi[n_event] = event[f"phi_{muon2_id+1}"]
             tm_m[n_event] = event[f"m_{muon2_id+1}"]
+        else:
+            tm_pt[n_event] = np.nan
+            tm_eta[n_event] = np.nan
+            tm_phi[n_event] = np.nan
+            tm_m[n_event] = np.nan
 
 
     matched_df = pd.DataFrame({
@@ -185,7 +195,7 @@ def detect_changes(df1, df2, columns:list):
 
 
 def subtract_columns(col1, col2, col_name:str):
-    if not col_name.startswith("phi"):
+    if not "phi" in col_name:
         diff = np.abs(col1 - col2)
     #phi needs to be handled differently because the value must be lower than pi
     else:

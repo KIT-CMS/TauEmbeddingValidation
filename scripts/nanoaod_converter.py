@@ -52,8 +52,6 @@ selection_q = [
 emb_quantities = data_quantities.copy()
 emb_quantities += selection_q
 
-
-
 print("Loading data")
 
 
@@ -71,29 +69,33 @@ print("Data ok")
 selection_q_converted = [element["target"] for element in selection_q]
 data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
 
-print("Copied:", selection_q_converted)
+print("Copied to data:", selection_q_converted)
 
 
 
-dr = calculate_dr(data_df, 5, filter=None)
-data_df_matched = apply_genmatching(dr.copy(), data_df.copy(deep=True))
+# dr = calculate_dr(data_df, 5, filter=None)
+# data_df_matched = apply_genmatching(dr.copy(), data_df.copy(deep=True))
+# data_df_matched = data_df.copy(deep=True)
 dr = calculate_dr(emb_df, 5, filter=None)
+# del emb_df[["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"]]
 emb_df_matched = apply_genmatching(dr.copy(), emb_df.copy(deep=True))
+# dr = calculate_dr(emb_df, 5, filter=get_filter_list())
 
-# filter_list = get_filter_list()
+filter_list = get_filter_list()
 
 # dr = calculate_dr(data_df, 5, filter=filter_list)
 # data_df_matched_filtered = apply_genmatching(dr.copy(), data_df.copy(deep=True))
-# dr = calculate_dr(emb_df, 5, filter=filter_list)
-# emb_df_matched_filtered = apply_genmatching(dr.copy(), emb_df.copy(deep=True))
+dr = calculate_dr(emb_df, 5, filter=filter_list)
+# del emb_df[["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"]]
+emb_df_matched_filtered = apply_genmatching(dr.copy(), emb_df.copy(deep=True))
 
 print("Genmatching applied")
 
 data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
-data_df_matched["m_vis"], data_df_matched["pt_vis"] = get_z_m_pt(data_df_matched)
-# data_df_matched_filtered["m_vis"], data_df_matched_filtered["pt_vis"] = get_z_m_pt(data_df_matched_filtered, data=True)
+# data_df_matched["m_vis"], data_df_matched["pt_vis"] = get_z_m_pt(data_df_matched)
+# data_df_matched_filtered["m_vis"], data_df_matched_filtered["pt_vis"] = get_z_m_pt(data_df_matched_filtered)
 emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched)
-# emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered, data=False)
+emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered)
 
 print("Added m_vis and pt_vis")
 
@@ -101,10 +103,10 @@ store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')
 # store.put("data_df", data_df, index=False)
 # store.put("emb_df", emb_df, index=False)
 store.put("data_df", data_df, index=False)
-store.put("data_df_matched", data_df, index=False)
-store.put("emb_df_matched", emb_df_matched, index=False)
+# store.put("data_df_matched", data_df_matched, index=False)
 # store.put("data_df_matched_filtered", data_df_matched_filtered, index=False)
-# store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
+store.put("emb_df_matched", emb_df_matched, index=False)
+store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
 store.close()
 
 print("Data stored in hdf store")
