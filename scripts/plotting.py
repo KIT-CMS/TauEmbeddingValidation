@@ -16,7 +16,7 @@ def get_bin_center(bins):
 
 
 
-def control_plot(data_col, emb_col, bins, title):
+def control_plot(data_col, emb_col, bins, title, dy=None):
     """plots data and embedding in one histogram and their ratio in a separate plot"""
     #creating figure, selecting upper axis 
     fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
@@ -57,7 +57,11 @@ def control_plot(data_col, emb_col, bins, title):
     ax_temp.bar(bins_data_center, 2*rel_diff_error, width=np.diff(edges), bottom=1-rel_diff_error, color="grey", alpha=0.5, edgecolor="none")
 
     #adding label and helping line to plot
-    dy_max = get_dy_max(rel_diff-1)
+    if type(dy)==type(None):
+        dy_max = get_dy_max(rel_diff-1)
+    else:
+        dy_max = dy
+        
     ax_temp.set_ylim(1-dy_max, 1+dy_max)
     ax_temp.set_ylabel(r"$N_\text{data}/N_\text{emb}$")
     plt.axhline(y=1, xmin=0, xmax=1, linestyle="dashed", color="black")

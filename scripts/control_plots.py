@@ -34,81 +34,83 @@ plotting_instructions = [
     {"col":"Jet_eta",           
         "bins":np.linspace(-5, 5, nbins),          
         "title":r"LJet eta",                 
+        "dy":None,
         "ylog":True,    
         "xlog":False},
     {"col":"Jet_mass",          
         "bins":np.linspace(0, 100, nbins),         
         "title":r"LJet mass/ GeV",           
-        "ylog":True,    "xlog":False},
+        "dy":None,
+        "ylog":True,    
+        "xlog":False},
     {"col":"Jet_phi",           
         "bins":np.linspace(-3.5, 3.5, nbins),      
         "title":r"LJet $\phi$",              
+        "dy":None,
         "ylog":True,    
         "xlog":False}, 
     {"col":"LM_eta",             
         "bins":np.linspace(-2.5, 2.5, nbins),      
         "title":r"$\eta_\text{µ1}$",             
+        "dy":None,
         "ylog":True,    
         "xlog":False},   
     {"col":"LM_phi",              
         "bins":np.linspace(-3.5, 3.5, nbins),         
         "title":r"$\phi_\text{µ1}$",  
+        "dy":None,
         "ylog":True,    
         "xlog":False},
     {"col":"LM_pt",              
         "bins":np.linspace(0, 300, nbins),         
         "title":r"$p_\text{T, µ1}$/ GeV",  
+        "dy":None,
         "ylog":True,    
         "xlog":False},
     {"col":"m_vis",             
         "bins":np.linspace(0, 200, nbins),         
         "title":r"$m_\text{µµ}$/ GeV",             
+        "dy":0.1,
         "ylog":True,    
         "xlog":False},
     {"col":"pt_vis",            
         "bins":np.linspace(0, 200, nbins),        
         "title":r"$p_\text{T, µµ}$/ GeV",           
+        "dy":None,
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_phi",      
         "bins":np.linspace(-3.5, 3.5, nbins),      
         "title":r"Missing $p_{T, \phi}$",           
+        "dy":None,
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_pt",       
         "bins":np.linspace(0, 150, nbins),         
         "title":r"Missing $p_{T}$ / GeV",           
+        "dy":None,
         "ylog":True,    
         "xlog":False},
-    # {"col":"PuppiMET_sumEt",    
-    #     "bins":np.linspace(0, 700, nbins),         
-    #     "title":r"Missing $E_\text{T}$ / GeV",      
-    #     "ylog":True,    
-    #     "xlog":False},
     {"col":"TM_eta",             
         "bins":np.linspace(-2.5, 2.5, nbins),      
         "title":r"$\eta_\text{µ2}$",             
+        "dy":None,
         "ylog":True,    
         "xlog":False},   
     {"col":"TM_phi",              
         "bins":np.linspace(-3.5, 3.5, nbins),         
         "title":r"$\phi_\text{µ2}$",  
+        "dy":None,
         "ylog":True,    
         "xlog":False},
     {"col":"TM_pt",              
         "bins":np.linspace(0, 300, nbins),         
         "title":r"$p_\text{T, µ2}$/ GeV",  
+        "dy":None,
         "ylog":True,    
         "xlog":False},
 ]
 
-# for quantity in plotting_instructions:
-#     col = quantity["col"]
-#     total_l = len(emb_df_matched)
-#     col_l = len(emb_df_matched[emb_df_matched[col].notna()])
-#     print(col, "\t", col_l- total_l)
-
-# exit()
 #data vs embedding 
 
 for quantity in plotting_instructions:
@@ -120,8 +122,9 @@ for quantity in plotting_instructions:
 
         col = quantity["col"]
         title = quantity["title"]
+        dy = quantity["dy"]
 
-        ax = control_plot(data_df[col], emb_df_matched[col], bins, title)
+        ax = control_plot(data_df[col], emb_df_matched[col], bins, title, dy)
 
         if quantity["xlog"]:
             ax[0].set_xscale("log")
