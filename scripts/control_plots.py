@@ -21,10 +21,10 @@ print("Initialized directories")
 
 
 data_df = pd.read_hdf(hdf_path, "data_df")
-data_df_matched = pd.read_hdf(hdf_path, "data_df_matched")
 emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
+emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
 
-verify_events(data_df, data_df_matched, emb_df_matched)
+verify_events(data_df, emb_df_matched)
 
 print("Data loaded and verified")
 
@@ -61,12 +61,12 @@ plotting_instructions = [
         "xlog":False},
     {"col":"m_vis",             
         "bins":np.linspace(0, 200, 25),         
-        "title":r"$m_\text{vis}$/ GeV",             
+        "title":r"$m_\text{µµ}$/ GeV",             
         "ylog":True,    
         "xlog":False},
     {"col":"pt_vis",            
         "bins":np.linspace(0, 200, 25),        
-        "title":r"$p_\text{T vis}$/ GeV",           
+        "title":r"$p_\text{T, µµ}$/ GeV",           
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_phi",      
@@ -101,6 +101,13 @@ plotting_instructions = [
         "xlog":False},
 ]
 
+# for quantity in plotting_instructions:
+#     col = quantity["col"]
+#     total_l = len(emb_df_matched)
+#     col_l = len(emb_df_matched[emb_df_matched[col].notna()])
+#     print(col, "\t", col_l- total_l)
+
+# exit()
 #data vs embedding 
 
 for quantity in plotting_instructions:
@@ -156,11 +163,11 @@ for quantity in plotting_instructions:
         title = quantity["title"]
 
         col0 = data_df[col]
-        col1 = data_df_matched[col]
+        col1 = emb_df_matched_filtered[col]
         col2 = emb_df_matched[col]
 
         q_dict = {
-            "Data (matched)": col1,
+            "Emb (matched + filtered)": col1,
             "Emb (matched)": col2,
         }
         ax = nq_comparison(q_dict, bins=bins, title=title, data=col0)
