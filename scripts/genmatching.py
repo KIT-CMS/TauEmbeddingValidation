@@ -120,7 +120,7 @@ def apply_genmatching(dr_arr, df):
         #else: #does not matter
         event = df.iloc[n_event]
 
-        #ignoring nans
+        #setting the new value if a valid one could be found - otherwise nan is set
         if ~np.isnan(muon1_id):
             lm_pt[n_event] = event[f"pt_{muon1_id+1}"]
             lm_eta[n_event] = event[f"eta_{muon1_id+1}"]
@@ -132,6 +132,7 @@ def apply_genmatching(dr_arr, df):
             lm_phi[n_event] = np.nan
             lm_m[n_event] = np.nan
 
+        #setting the new value if a valid one could be found - otherwise nan is set
         if ~np.isnan(muon2_id):
             tm_pt[n_event] = event[f"pt_{muon2_id+1}"]
             tm_eta[n_event] = event[f"eta_{muon2_id+1}"]
@@ -182,6 +183,7 @@ def get_closest_muon_data(dr_arr):
 
 
 def detect_changes(df1, df2, columns:list):
+    #compares how many elements in the series object are different between two dfs
     res = ""
     for column in columns:
         temp = df1[column] - df2[column]
@@ -195,6 +197,7 @@ def detect_changes(df1, df2, columns:list):
 
 
 def subtract_columns(col1, col2, col_name:str):
+    #allows to subtract two columns while treating phi specially
     if not "phi" in col_name:
         diff = np.abs(col1 - col2)
     #phi needs to be handled differently because the value must be lower than pi
@@ -209,6 +212,7 @@ def subtract_columns(col1, col2, col_name:str):
 
 
 def divide_columns(numerator, divisor):
+    #divides columns wile avoiding dividing by zero warnings and nan errors
     mask1 = divisor != 0
     mask2 = ~np.isnan(divisor)
     mask3 = ~np.isnan(numerator)
@@ -220,3 +224,11 @@ def divide_columns(numerator, divisor):
     q[mask] = numerator[mask]/ divisor[mask]
 
     return q
+
+def get_matching_df(df, rm_cols):
+    #this function copies a dataframe so that the original data stays untouched and also removes columns that are unwanted in the resulting dataset
+    df_copy = df.copy(deep=True)
+    for col in rm_cols:
+        del df_copy[col]
+
+    return df_copy
