@@ -152,7 +152,8 @@ def q_comparison(col1, col2, bins, col1_label, col2_label, title):
 def get_dy_max(array):
     not_nan_array = array[~np.isnan(array)]
     array_max = np.amax(np.absolute(not_nan_array))
-    dy_max = min(1, 1.5*array_max)
+    dy_max = min(1, 1.5*array_max)#maximum of dy has to be 1
+    dy_max = max(dy_max, 0.1)#minimum only 10%
     if dy_max == 0:
         return 1
     return dy_max
