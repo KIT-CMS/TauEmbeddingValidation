@@ -6,7 +6,7 @@ from helper import subtract_columns
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
-    {"col":"pt", "min":27, "max":np.inf},
+    {"col":"pt", "min":8, "max":np.inf},
     {"col":"eta", "min":-2.5, "max":2.5},
     # {"col":"pt_ratio", "min":0.75, "max":1.25}
 ]
@@ -17,22 +17,45 @@ def get_filter_list():
 
 
 #following code is for genmatching
-def calculate_dr(df, n_muon, filter=None):
+def calculate_dr(df, n_col, mode, filter=None):
     #this function returns the dr value for all particle combination from embedding
     #the first "n_data" particles of data are compare to the first "n_emb" particles of the embeddign dataset
 
-    dr_arr = np.full(shape=(len(df), 2, n_muon), dtype=float, fill_value=np.nan)
+    dr_arr = np.full(shape=(len(df), 2, n_col), dtype=float, fill_value=np.nan)
 
     #looping over all data particle and embedding particle combinations
     for n in range(1, 3):
-        if n == 1:
-            col_name = "LM"#first comparing to leading muon
-        elif n == 2:
-            col_name = "TM"#then comparing to trailing muon
-
-        for n_m in range(1, n_muon+1):
-            eta_diff = subtract_columns(df[f"{col_name}_eta"], df[f"eta_{n_m}"], "eta_")
-            phi_diff = subtract_columns(df[f"{col_name}_phi"], df[f"phi_{n_m}"], "phi_")
+        #if dr should be calculated between muon, the columns to be used are different from the columns in the jet case. the following clauses assign the names of the columns based on the mode. 
+        if mode=="muon":
+            comp_phi = "phi"#this is the name of the columns that the 2 relevant muons are being compared to (simply all muon columns)
+            comp_eta = "eta"
+            comp_pt = "pt"
+            if n == 1:
+                master_eta = "LM_eta"#first comparing to leading muon
+                master_phi = "LM_phi"
+                master_pt = "LM_pt"
+            elif n == 2:
+                master_eta = "TM_eta"#then comparing to trailing muon
+                master_phi = "TM_phi"
+                master_pt = "TM_pt"
+        elif mode=="jet":
+            comp_phi = "Jet_phi"
+            comp_eta = "Jet_eta"
+            comp_pt = "Jet_pt"
+            if n == 1:
+                master_eta = "Jet_eta_1"#comparing the first jet
+                master_phi = "Jet_phi_1"
+                master_pt = "Jet_pt_1"
+            elif n == 2:
+                master_eta = "Jet_eta_2"#then comparing the second jet
+                master_phi = "Jet_phi_2"
+                master_pt = "Jet_pt_2"
+        else:
+            raise ValueError("Invalid mode selected")
+        
+        for n_m in range(1, n_col+1):
+            eta_diff = subtract_columns(df[master_eta], df[f"{comp_eta}_{n_m}"], "eta_")
+            phi_diff = subtract_columns(df[master_phi], df[f"{comp_phi}_{n_m}"], "phi_")
 
             #calculating the dr value between them for all events
             dr_temp = np.sqrt(np.square(eta_diff) + np.square(phi_diff))
@@ -55,7 +78,7 @@ def calculate_dr(df, n_muon, filter=None):
                         mask = np.logical_or(mask1, mask2)
                         dr_temp[mask] = np.nan
                     elif basename == "pt_ratio":
-                        pt_ratio = df[f"{col_name}_pt"]/ df[f"pt_{n_m}"]
+                        pt_ratio = df[master_pt]/ df[f"{comp_pt}_{n_m}"]
                         mask1 = pt_ratio < min_val
                         mask2 = pt_ratio > max_val
                         mask = np.logical_or(mask1, mask2)
@@ -81,8 +104,38 @@ def remove_emb_mu_from_dist(dist, id):
         dist[:, id] = np.nan
     return dist
 
-def apply_genmatching(dr_arr, df):
+def apply_genmatching(dr_arr, df, mode):
     #switches data for those entries where an emb muon closer to the original one is present
+
+    if mode == "muon":
+        pt_source = "pt"
+        eta_source = "eta"
+        phi_source = "phi"
+        m_source = "m"
+        pt_target_1 = "LM_pt"
+        pt_target_2 = "TM_pt"
+        eta_target_1 = "LM_eta"
+        eta_target_2 = "TM_eta"
+        phi_target_1 = "LM_phi"
+        phi_target_2 = "TM_phi"
+        m_target_1 = "LM_m"
+        m_target_2 = "TM_m"
+    elif mode == "jet":
+        pt_source = "Jet_pt"
+        eta_source = "Jet_eta"
+        phi_source = "Jet_phi"
+        m_source = "Jet_m"
+        pt_target_1 = "LJ_pt"
+        pt_target_2 = "TJ_pt"
+        eta_target_1 = "LJ_eta"
+        eta_target_2 = "TJ_eta"
+        phi_target_1 = "LJ_phi"
+        phi_target_2 = "TJ_phi"
+        m_target_1 = "LJ_m"
+        m_target_2 = "TJ_m"
+    else:
+        raise ValueError("invalid mode selected")
+    
     target_length = len(df)
     lm_pt = np.full(target_length, fill_value=np.nan)
     tm_pt = np.full(target_length, fill_value=np.nan)
@@ -122,10 +175,10 @@ def apply_genmatching(dr_arr, df):
 
         #setting the new value if a valid one could be found - otherwise nan is set
         if ~np.isnan(muon1_id):
-            lm_pt[n_event] = event[f"pt_{muon1_id+1}"]
-            lm_eta[n_event] = event[f"eta_{muon1_id+1}"]
-            lm_phi[n_event] = event[f"phi_{muon1_id+1}"]
-            lm_m[n_event] = event[f"m_{muon1_id+1}"]
+            lm_pt[n_event] = event[f"{pt_source}_{muon1_id+1}"]
+            lm_eta[n_event] = event[f"{eta_source}_{muon1_id+1}"]
+            lm_phi[n_event] = event[f"{phi_source}_{muon1_id+1}"]
+            lm_m[n_event] = event[f"{m_source}_{muon1_id+1}"]
         else:
             lm_pt[n_event] = np.nan
             lm_eta[n_event] = np.nan
@@ -134,10 +187,10 @@ def apply_genmatching(dr_arr, df):
 
         #setting the new value if a valid one could be found - otherwise nan is set
         if ~np.isnan(muon2_id):
-            tm_pt[n_event] = event[f"pt_{muon2_id+1}"]
-            tm_eta[n_event] = event[f"eta_{muon2_id+1}"]
-            tm_phi[n_event] = event[f"phi_{muon2_id+1}"]
-            tm_m[n_event] = event[f"m_{muon2_id+1}"]
+            tm_pt[n_event] = event[f"{pt_source}_{muon2_id+1}"]
+            tm_eta[n_event] = event[f"{eta_source}_{muon2_id+1}"]
+            tm_phi[n_event] = event[f"{phi_source}_{muon2_id+1}"]
+            tm_m[n_event] = event[f"{m_source}_{muon2_id+1}"]
         else:
             tm_pt[n_event] = np.nan
             tm_eta[n_event] = np.nan
@@ -146,16 +199,17 @@ def apply_genmatching(dr_arr, df):
 
 
     matched_df = pd.DataFrame({
-        "LM_pt": pd.Series(lm_pt),
-        "TM_pt": pd.Series(tm_pt),
-        "LM_eta": pd.Series(lm_eta),
-        "TM_eta": pd.Series(tm_eta),
-        "LM_phi": pd.Series(lm_phi),
-        "TM_phi": pd.Series(tm_phi),
-        "LM_m": pd.Series(lm_m),
-        "TM_m": pd.Series(tm_m)
+        f"{pt_target_1}": pd.Series(lm_pt),
+        f"{pt_target_2}": pd.Series(tm_pt),
+        f"{eta_target_1}": pd.Series(lm_eta),
+        f"{eta_target_2}": pd.Series(tm_eta),
+        f"{phi_target_1}": pd.Series(lm_phi),
+        f"{phi_target_2}": pd.Series(tm_phi),
+        f"{m_target_1}": pd.Series(lm_m),
+        f"{m_target_2}": pd.Series(tm_m)
     })
-    df[["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"]] = matched_df
+    df = pd.concat([df, matched_df], axis=1)
+    # df[[pt_target_1, pt_target_2, eta_target_1, eta_target_2, phi_target_1, phi_target_2, m_target_1, m_target_2]] = matched_df
     return df
 
 
