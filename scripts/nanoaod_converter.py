@@ -4,22 +4,20 @@ import mplhep as hep
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import pathlib
 
 from importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
 from genmatching import calculate_dr, apply_genmatching, get_filter_list
 from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df
 
 
-# data_path = "./data/2022G-nanoaod/2022G-data.root"
-# emb_path = "./data/2022G-nanoaod/2022G-emb.root"
-data_path = "./data/2022G-nanoaod_gen/2022G-data.root"
-emb_path = "./data/2022G-nanoaod_gen/2022G-emb_gen.root"
+data_path = "./data/2022G-nanoaod_gen/"
+emb_path = "./data/2022G-nanoaod_gen/"
+
+data_filenames = "2022G-data_*.root"
+emb_filenames = "2022G-emb_gen_*.root"
 
 output_path = "./data/converted"
-
-initialize_dir(output_path)
-
-print("Directory initialized")
 
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
@@ -55,9 +53,11 @@ emb_quantities += selection_q
 
 print("Loading data")
 
+data_files = list(pathlib.Path(data_path).glob(data_filenames))
+emb_files = list(pathlib.Path(emb_path).glob(emb_filenames))
 
-data_df = nanoaod_to_dataframe(data_path=data_path, quantities=data_quantities)
-emb_df = nanoaod_to_dataframe(data_path=emb_path, quantities=emb_quantities)
+data_df = nanoaod_to_dataframe(files=data_files, quantities=data_quantities)
+emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 
 print("Data loaded")
 
@@ -88,6 +88,11 @@ emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched)
 emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered)
 
 print("Added m_vis and pt_vis")
+
+
+initialize_dir(output_path)
+print("Directory initialized")
+
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
 store.put("data_df", data_df, index=False)

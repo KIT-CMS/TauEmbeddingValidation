@@ -8,50 +8,57 @@ import shutil
 
 
 
-def nanoaod_to_dataframe(data_path, quantities):
+def nanoaod_to_dataframe(files, quantities):
+    #imports all files in files and concatenates them
+    master_df = pd.DataFrame()
+
     # initialization
-    nanoaod = uproot.open(data_path)
+    for path in files:
+        nanoaod = uproot.open(path)
 
-    nanoaod = nanoaod["Events;1"]
+        nanoaod = nanoaod["Events;1"]
 
-    events = pd.DataFrame()
+        events = pd.DataFrame()
 
-    for quantity in quantities:
-        #this is a column of a nanoaod
-        column = quantity["key"]#
-        target_name = quantity["target"]
-        expand = quantity["expand"]
+        for quantity in quantities:
+            #this is a column of a nanoaod
+            column = quantity["key"]#
+            target_name = quantity["target"]
+            expand = quantity["expand"]
 
-        temp = nanoaod[column].array(library="np")
+            temp = nanoaod[column].array(library="np")
+                    
+            #can only expand nested arrays and not numbers - all entries of the column should be again arrays
+            if expand:
+                assert column_is_nested(temp), "Can only expand nested columns"
+                # n_expand = quantity["n_expand"]
+                # assert n_expand >= 1, "Need room to unpack"
                 
-        #can only expand nested arrays and not numbers - all entries of the column should be again arrays
-        if expand:
-            assert column_is_nested(temp), "Can only expand nested columns"
-            # n_expand = quantity["n_expand"]
-            # assert n_expand >= 1, "Need room to unpack"
+                #which are then stored as flat columns
+                length_array = get_subarray_length(temp)
+                # max_length = min([np.amax(length_array), n_expand])
+                max_length = np.amax(length_array)
             
-            #which are then stored as flat columns
-            length_array = get_subarray_length(temp)
-            # max_length = min([np.amax(length_array), n_expand])
-            max_length = np.amax(length_array)
-        
-            for num in range(max_length):
-                events[f'{target_name}_{num+1}'] = get_nth_element(temp, num)
+                for num in range(max_length):
+                    events[f'{target_name}_{num+1}'] = get_nth_element(temp, num)
 
-            # expanded_array = np.array([np.pad(sub_array, (0, max_length - len(sub_array)), constant_values=np.nan) for sub_array in temp])
+                # expanded_array = np.array([np.pad(sub_array, (0, max_length - len(sub_array)), constant_values=np.nan) for sub_array in temp])
 
-            # events[[f'{target_name}_{i+1}' for i in range(max_length)]] = expanded_array
-            # events[f"{target_name}_length"] = length_array
+                # events[[f'{target_name}_{i+1}' for i in range(max_length)]] = expanded_array
+                # events[f"{target_name}_length"] = length_array
 
-        else:
-            #returning only the first column if expansion of nested array is not wanted
-            if column_is_nested(temp):
-                events[target_name] = get_nth_element(temp, 0)
-            #returning the plain column if it is not nested
             else:
-                events[target_name] = pd.Series(temp)
+                #returning only the first column if expansion of nested array is not wanted
+                if column_is_nested(temp):
+                    events[target_name] = get_nth_element(temp, 0)
+                #returning the plain column if it is not nested
+                else:
+                    events[target_name] = pd.Series(temp)
+        master_df = pd.concat([master_df, events], ignore_index=True)
 
-    return events
+    master_df = master_df.drop_duplicates(["event", "lumi", "run"])
+
+    return master_df
         
 def get_nth_element(array, n):
     #returns the nth sub column if possible 

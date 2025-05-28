@@ -117,12 +117,13 @@ for quantity in plotting_instructions:
     for mode in ["custom", "default"]:
         if mode == "default":
             bins = nbins
+            dy = None
         elif mode == "custom":
             bins = quantity["bins"]
+            dy = quantity["dy"]
 
         col = quantity["col"]
         title = quantity["title"]
-        dy = quantity["dy"]
 
         ax = control_plot(data_df[col], emb_df_matched[col], bins, title, dy)
 
