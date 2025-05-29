@@ -6,7 +6,7 @@ from helper import subtract_columns
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
-    {"col":"pt", "min":27, "max":np.inf},
+    {"col":"pt", "min":8, "max":np.inf},
     {"col":"eta", "min":-2.5, "max":2.5},
     # {"col":"pt_ratio", "min":0.75, "max":1.25}
 ]
@@ -94,15 +94,17 @@ def apply_genmatching(dr_arr, df):
     tm_m = np.full(target_length, fill_value=np.nan)
 
     muon_best_fit = np.full((target_length,2), fill_value=np.nan)
+    dr_min = np.full((target_length,2), fill_value=np.nan)
 
     for n_event in range(len(df)):
         distances = dr_arr[n_event, :, :]
+        distances2 = np.copy(dr_arr[n_event, :, :])
         
         muon1_id = find_closest_muon(distances[0, :])
         muon2_id = find_closest_muon(distances[1, :])
-        
-        #checking whether candidates both fit best to the same muon
-        if muon1_id == muon2_id:
+
+        #checking whether candidates both fit best to the same muon (ignoring nans)
+        if muon1_id == muon2_id and ~np.isnan(muon1_id):
             #in this case the muon can only be matched once.
             muon_id = muon1_id
             #thus removing the id for avoiding reselection
@@ -118,7 +120,6 @@ def apply_genmatching(dr_arr, df):
             #otherwise the other way around
             else:
                 muon1_id = find_closest_muon(distances[0, :])
-
         #else: #does not matter
         event = df.iloc[n_event]
 
@@ -129,12 +130,14 @@ def apply_genmatching(dr_arr, df):
             lm_phi[n_event] = event[f"phi_{muon1_id+1}"]
             lm_m[n_event] = event[f"m_{muon1_id+1}"]
             muon_best_fit[n_event, 0] = muon1_id
+            dr_min[n_event, 0] = distances2[0, muon1_id]
         else:
             lm_pt[n_event] = np.nan
             lm_eta[n_event] = np.nan
             lm_phi[n_event] = np.nan
             lm_m[n_event] = np.nan
             muon_best_fit[n_event, 0] = np.nan
+            dr_min[n_event, 0] = np.nan
 
         #setting the new value if a valid one could be found - otherwise nan is set
         if ~np.isnan(muon2_id):
@@ -143,12 +146,14 @@ def apply_genmatching(dr_arr, df):
             tm_phi[n_event] = event[f"phi_{muon2_id+1}"]
             tm_m[n_event] = event[f"m_{muon2_id+1}"]
             muon_best_fit[n_event, 1] = muon2_id
+            dr_min[n_event, 1] = distances2[1, muon2_id]
         else:
             tm_pt[n_event] = np.nan
             tm_eta[n_event] = np.nan
             tm_phi[n_event] = np.nan
             tm_m[n_event] = np.nan
             muon_best_fit[n_event, 0] = np.nan
+            dr_min[n_event, 0] = np.nan
 
 
     matched_df = pd.DataFrame({
@@ -162,7 +167,7 @@ def apply_genmatching(dr_arr, df):
         "TM_m": pd.Series(tm_m)
     })
     df[["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"]] = matched_df
-    return df, muon_best_fit
+    return df, muon_best_fit, dr_min
 
 
 

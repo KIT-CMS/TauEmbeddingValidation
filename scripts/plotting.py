@@ -230,3 +230,11 @@ def match_plot(fit):
     ax.set_xticklabels(tick_labels)
 
     return ax
+
+def dr_plot(dr, title):
+    dr1 = dr[:,0]
+    dr2 = dr[:,1]
+
+    ax = nq_comparison({"LM":dr1, "TM":dr2}, 30, title)
+
+    return ax

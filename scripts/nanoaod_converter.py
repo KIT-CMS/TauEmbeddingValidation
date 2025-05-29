@@ -8,9 +8,12 @@ import pathlib
 
 from importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
 from genmatching import calculate_dr, apply_genmatching, get_filter_list
-from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df
-from plotting import match_plot
+from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns
+from plotting import match_plot, dr_plot
 
+########################################################################################################################################################################
+# paths for input and output 
+########################################################################################################################################################################
 data_path = "./data/2022G-nanoaod_gen/"
 emb_path = "./data/2022G-nanoaod_gen/"
 
@@ -21,7 +24,10 @@ output_path = "./data/converted"
 
 match_plot_path = "./output/match_plots"
 
-initialize_dir(match_plot_path)
+########################################################################################################################################################################
+# columns to be read and their new names in the resulting df
+########################################################################################################################################################################
+
 
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
@@ -55,6 +61,10 @@ selection_q = [
 emb_quantities = data_quantities.copy()
 emb_quantities += selection_q
 
+########################################################################################################################################################################
+# Reading data
+########################################################################################################################################################################
+
 print("Loading data")
 
 data_files = list(pathlib.Path(data_path).glob(data_filenames))
@@ -65,33 +75,83 @@ emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 
 print("Data loaded")
 
+########################################################################################################################################################################
+# Keeping only those events that are both in data and embedding 
+########################################################################################################################################################################
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
 verify_events(data_df, emb_df)
 
 print("Data ok")
 
+########################################################################################################################################################################
+# copying the columns with info about muons used for embedding to original dataset so that they can be treated equally
+######################################################################################################################################################################## 
 selection_q_converted = [element["target"] for element in selection_q]
 data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
 
 print("Copied to data:", selection_q_converted)
 
+########################################################################################################################################################################
+# Applying matching
+########################################################################################################################################################################
+
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
 dr = calculate_dr(emb_df, 5, filter=None)
-emb_df_matched, best_fit = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
-ax = match_plot(best_fit)
-plt.savefig(os.path.join(match_plot_path, f"emb_matched.png"))
-plt.close()
+emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
 
 filter_list = get_filter_list()
 dr = calculate_dr(emb_df, 5, filter=filter_list)
-emb_df_matched_filtered, best_fit = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
-ax = match_plot(best_fit)
+emb_df_matched_filtered, muon_id_matched_filtered, dr_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+
+print("Genmatching applied")
+
+
+########################################################################################################################################################################
+# Creating plots indicating performance of matching
+########################################################################################################################################################################
+
+initialize_dir(match_plot_path)
+
+dphi_1 = subtract_columns(emb_df["phi_1"], data_df["phi_1"], "phi_1")
+deta_1 = subtract_columns(emb_df["eta_1"], data_df["eta_1"], "eta_1")
+dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
+dphi_2 = subtract_columns(emb_df["phi_2"], data_df["phi_2"], "phi_2")
+deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
+dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
+
+ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{unmatched}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"dr_unmatched.png"))
+plt.close()
+
+
+ax = match_plot(muon_id_matched)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"emb_matched.png"))
+plt.close()
+
+ax = dr_plot(dr_matched, r"$\delta r_\text{matched}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"dr_matched.png"))
+plt.close()
+
+
+ax = match_plot(muon_id_matched_filtered)
 plt.savefig(os.path.join(match_plot_path, f"emb_matched+filtered.png"))
 plt.close()
 
-print("Genmatching applied")
+ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
+plt.close()
+
+print("Created plots")
+
+########################################################################################################################################################################
+# Adding mvis and ptvis
+########################################################################################################################################################################
 
 data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
 emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched)
@@ -99,10 +159,11 @@ emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt
 
 print("Added m_vis and pt_vis")
 
+########################################################################################################################################################################
+# Storing datarames in hdf store
+########################################################################################################################################################################
 
 initialize_dir(output_path)
-print("Directory initialized")
-
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
 store.put("data_df", data_df, index=False)
