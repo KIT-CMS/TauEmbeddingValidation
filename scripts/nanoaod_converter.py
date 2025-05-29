@@ -121,30 +121,34 @@ dphi_2 = subtract_columns(emb_df["phi_2"], data_df["phi_2"], "phi_2")
 deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
 dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
+#dr between muon1|2 data and muon1|2 embedding
 ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{unmatched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"dr_unmatched.png"))
 plt.close()
 
-
-ax = match_plot(muon_id_matched)
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"emb_matched.png"))
-plt.close()
-
+#dr between l|m muon data and l|m muon embedding
 ax = dr_plot(dr_matched, r"$\delta r_\text{matched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"dr_matched.png"))
 plt.close()
 
-
-ax = match_plot(muon_id_matched_filtered)
-plt.savefig(os.path.join(match_plot_path, f"emb_matched+filtered.png"))
-plt.close()
-
+#dr between l|m muon data and l|m muon embedding with filters
 ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
+plt.close()
+
+#frequency of muon id to be used as l|m muon
+ax = match_plot(muon_id_matched)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"id_matched.png"))
+plt.close()
+
+#frequency of muon id to be used as l|m muon
+ax = match_plot(muon_id_matched_filtered)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"id_matched+filtered.png"))
 plt.close()
 
 print("Created plots")
