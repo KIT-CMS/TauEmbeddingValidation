@@ -9,7 +9,7 @@ import pathlib
 from importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
 from genmatching import calculate_dr, apply_genmatching, get_filter_list
 from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df
-
+from plotting import match_plot
 
 data_path = "./data/2022G-nanoaod_gen/"
 emb_path = "./data/2022G-nanoaod_gen/"
@@ -18,6 +18,10 @@ data_filenames = "2022G-data_*.root"
 emb_filenames = "2022G-emb_gen_*.root"
 
 output_path = "./data/converted"
+
+match_plot_path = "./output/match_plots"
+
+initialize_dir(match_plot_path)
 
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
@@ -75,11 +79,17 @@ print("Copied to data:", selection_q_converted)
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
 dr = calculate_dr(emb_df, 5, filter=None)
-emb_df_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+emb_df_matched, best_fit = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+ax = match_plot(best_fit)
+plt.savefig(os.path.join(match_plot_path, f"emb_matched.png"))
+plt.close()
 
 filter_list = get_filter_list()
 dr = calculate_dr(emb_df, 5, filter=filter_list)
-emb_df_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+emb_df_matched_filtered, best_fit = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+ax = match_plot(best_fit)
+plt.savefig(os.path.join(match_plot_path, f"emb_matched+filtered.png"))
+plt.close()
 
 print("Genmatching applied")
 

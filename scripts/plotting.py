@@ -213,3 +213,20 @@ def nq_comparison(q_dict, bins, title, data=None):
     return ax
 
 
+def match_plot(fit):
+    best_fit1 = fit[:,0]
+    best_fit2 = fit[:,1]
+    max_id = int(np.nanmax(fit))
+    ticks = [n for n in range(-1, max_id+1)]
+    tick_labels = [np.nan] + [n for n in range(max_id+1)]
+
+    best_fit1 = np.where(np.isnan(best_fit1), -1, best_fit1)
+    best_fit2 = np.where(np.isnan(best_fit2), -1, best_fit2)
+
+    max_id = ticks[-1] + 1.5
+    ax = nq_comparison({"LM":best_fit1, "TM":best_fit2}, np.arange(-1.5, max_id, 1), "Closest muon")
+    ax.set_yscale("log")
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(tick_labels)
+
+    return ax

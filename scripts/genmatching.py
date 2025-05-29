@@ -93,6 +93,8 @@ def apply_genmatching(dr_arr, df):
     lm_m = np.full(target_length, fill_value=np.nan)
     tm_m = np.full(target_length, fill_value=np.nan)
 
+    muon_best_fit = np.full((target_length,2), fill_value=np.nan)
+
     for n_event in range(len(df)):
         distances = dr_arr[n_event, :, :]
         
@@ -126,11 +128,13 @@ def apply_genmatching(dr_arr, df):
             lm_eta[n_event] = event[f"eta_{muon1_id+1}"]
             lm_phi[n_event] = event[f"phi_{muon1_id+1}"]
             lm_m[n_event] = event[f"m_{muon1_id+1}"]
+            muon_best_fit[n_event, 0] = muon1_id
         else:
             lm_pt[n_event] = np.nan
             lm_eta[n_event] = np.nan
             lm_phi[n_event] = np.nan
             lm_m[n_event] = np.nan
+            muon_best_fit[n_event, 0] = np.nan
 
         #setting the new value if a valid one could be found - otherwise nan is set
         if ~np.isnan(muon2_id):
@@ -138,11 +142,13 @@ def apply_genmatching(dr_arr, df):
             tm_eta[n_event] = event[f"eta_{muon2_id+1}"]
             tm_phi[n_event] = event[f"phi_{muon2_id+1}"]
             tm_m[n_event] = event[f"m_{muon2_id+1}"]
+            muon_best_fit[n_event, 1] = muon2_id
         else:
             tm_pt[n_event] = np.nan
             tm_eta[n_event] = np.nan
             tm_phi[n_event] = np.nan
             tm_m[n_event] = np.nan
+            muon_best_fit[n_event, 0] = np.nan
 
 
     matched_df = pd.DataFrame({
@@ -156,7 +162,7 @@ def apply_genmatching(dr_arr, df):
         "TM_m": pd.Series(tm_m)
     })
     df[["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"]] = matched_df
-    return df
+    return df, muon_best_fit
 
 
 
