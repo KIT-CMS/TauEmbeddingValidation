@@ -10,27 +10,26 @@ from importer import initialize_dir
 from genmatching import subtract_columns
 from helper import divide_columns, verify_events
 
+
+
+########################################################################################################################################################################
+# Paths for input and output
+########################################################################################################################################################################
+
 hdf_path = "./data/converted/converted_nanoaod.h5"
 
-# comparison_output_path = "./output/diff_plots/comparison"
 abs_output_path = "./output/diff_plots/abs_diff"
 rel_output_path = "./output/diff_plots/rel_diff"
 
-# initialize_dir(comparison_output_path, ["default", "custom"])
 initialize_dir(abs_output_path, ["default", "custom"])
 initialize_dir(rel_output_path, ["default", "custom"])
 
 
 print("Initialized directories")
 
-data_df = pd.read_hdf(hdf_path, "data_df")
-# data_df_matched = pd.read_hdf(hdf_path, "data_df_matched")
-emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
-
-verify_events(data_df, emb_df_matched)
-
-print("Data loaded and verified")
-
+########################################################################################################################################################################
+# Instructions for plots
+########################################################################################################################################################################
 
 nbins = 35
 
@@ -143,6 +142,19 @@ plotting_instructions = [
 ]
 
 
+########################################################################################################################################################################
+# Reading data
+########################################################################################################################################################################
+
+data_df = pd.read_hdf(hdf_path, "data_df")
+# data_df_matched = pd.read_hdf(hdf_path, "data_df_matched")
+emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
+
+verify_events(data_df, emb_df_matched)
+
+print("Data loaded and verified")
+
+
 #comparison plots
 
 # for quantity in plotting_instructions:
@@ -189,6 +201,11 @@ plotting_instructions = [
 
 
 
+
+########################################################################################################################################################################
+# Creating plots that show the difference of equally named columns from to different datasets
+# the plots will show the absolute and the relative difference
+########################################################################################################################################################################
 
 
 for quantity in plotting_instructions:

@@ -9,24 +9,23 @@ from plotting import control_plot, nq_comparison
 from importer import initialize_dir
 from helper import verify_events
 
+
+########################################################################################################################################################################
+# Paths for input and output
+########################################################################################################################################################################
+
 hdf_path = "./data/converted/converted_nanoaod.h5"
 comparison_output_path = "./output/control_plots/comparison"
 control_output_path = "./output/control_plots/normal"
-
 
 initialize_dir(comparison_output_path, ["default", "custom"])
 initialize_dir(control_output_path, ["default", "custom"])
 
 print("Initialized directories")
 
-
-data_df = pd.read_hdf(hdf_path, "data_df")
-emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
-emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
-
-verify_events(data_df, emb_df_matched)
-
-print("Data loaded and verified")
+########################################################################################################################################################################
+# Instructions for plots
+########################################################################################################################################################################
 
 nbins = 35
 
@@ -111,7 +110,23 @@ plotting_instructions = [
         "xlog":False},
 ]
 
-#data vs embedding 
+########################################################################################################################################################################
+# Reading data
+########################################################################################################################################################################
+
+data_df = pd.read_hdf(hdf_path, "data_df")
+emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
+emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
+
+verify_events(data_df, emb_df_matched)
+
+print("Data loaded and verified")
+
+
+
+########################################################################################################################################################################
+# Basic control plots comparing data and matched embedding
+########################################################################################################################################################################
 
 for quantity in plotting_instructions:
     for mode in ["custom", "default"]:
@@ -155,6 +170,11 @@ print("Created control plots ")
     
 #     plt.savefig(os.path.join(comparison_output_path, "custom", f"{col}.png"))
 #     plt.close()
+
+
+########################################################################################################################################################################
+# Step histograms comparing more than two columns
+########################################################################################################################################################################
 
 
 for quantity in plotting_instructions:

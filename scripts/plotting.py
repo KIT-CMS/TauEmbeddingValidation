@@ -9,6 +9,7 @@ plt.style.use(hep.style.CMS)
 
 
 def get_bin_center(bins):
+    #returns center of bins
     data_bins_left = np.copy(bins[:-1]) /2
     data_bins_right = np.copy(bins[1:]) /2
     bin_center = data_bins_left + data_bins_right
@@ -106,6 +107,7 @@ def histogram(quantity, bins, title):
 
 
 def q_comparison(col1, col2, bins, col1_label, col2_label, title):
+    #compares two columns against each other and also shows ratio
 
     #creating figure, selecting upper axis 
     fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
@@ -154,6 +156,7 @@ def q_comparison(col1, col2, bins, col1_label, col2_label, title):
 
 
 def get_dy_max(array):
+    #returns ylim for error plots
     not_nan_array = array[~np.isnan(array)]
     array_max = np.amax(np.absolute(not_nan_array))
     dy_max = min(1, 1.5*array_max)#maximum of dy has to be 1
@@ -164,7 +167,7 @@ def get_dy_max(array):
 
 
 def x_vs_y(x, y, xlabel, ylabel):
-
+    #plots x as funciton of y
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.set_figheight(14)
     fig.set_figwidth(14)
@@ -184,6 +187,7 @@ def x_vs_y(x, y, xlabel, ylabel):
 
 
 def nq_comparison(q_dict, bins, title, data=None):
+    #function for creating plots with variable amount of dataset
 
     #creating figure, selecting upper axis 
     fig, ax = plt.subplots(nrows=1, ncols=1)
@@ -214,6 +218,7 @@ def nq_comparison(q_dict, bins, title, data=None):
 
 
 def match_plot(fit):
+    #function to be used for creating a hsitogram indicating the best fit for leading and trailing muon
     best_fit1 = fit[:,0]
     best_fit2 = fit[:,1]
     max_id = int(np.nanmax(fit))
@@ -232,6 +237,7 @@ def match_plot(fit):
     return ax
 
 def dr_plot(dr, title):
+    #plotting dr distributions
     dr1 = dr[:,0]
     dr2 = dr[:,1]
 
