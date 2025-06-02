@@ -134,7 +134,7 @@ plotting_instructions = [
 
 data_df = pd.read_hdf(hdf_path, "data_df")
 emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
-emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
+# emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
 
 verify_events(data_df, emb_df_matched)
 
@@ -195,34 +195,34 @@ print("Created control plots ")
 ########################################################################################################################################################################
 
 
-for quantity in plotting_instructions:
-    for mode in ["custom", "default"]:
-        if mode == "default":
-            bins = nbins
-        elif mode == "custom":
-            bins = quantity["bins"]
+# for quantity in plotting_instructions:
+#     for mode in ["custom", "default"]:
+#         if mode == "default":
+#             bins = nbins
+#         elif mode == "custom":
+#             bins = quantity["bins"]
 
-        col = quantity["col"]
-        title = quantity["title"]
+#         col = quantity["col"]
+#         title = quantity["title"]
 
-        col0 = data_df[col]
-        col1 = emb_df_matched_filtered[col]
-        col2 = emb_df_matched[col]
+#         col0 = data_df[col]
+#         col1 = emb_df_matched_filtered[col]
+#         col2 = emb_df_matched[col]
 
-        q_dict = {
-            "Emb (matched + filtered)": col1,
-            "Emb (matched)": col2,
-        }
-        ax = nq_comparison(q_dict, bins=bins, title=title, data=col0)
+#         q_dict = {
+#             "Emb (matched + filtered)": col1,
+#             "Emb (matched)": col2,
+#         }
+#         ax = nq_comparison(q_dict, bins=bins, title=title, data=col0)
         
-        if quantity["xlog"]:
-            ax.set_xscale("log")
-        if quantity["ylog"]:
-            ax.set_yscale("log")
+#         if quantity["xlog"]:
+#             ax.set_xscale("log")
+#         if quantity["ylog"]:
+#             ax.set_yscale("log")
         
-        plt.savefig(os.path.join(comparison_output_path, mode, f"{col}.png"))
-        plt.close()
+#         plt.savefig(os.path.join(comparison_output_path, mode, f"{col}.png"))
+#         plt.close()
 
-print("Created comparison plots")
+# print("Created comparison plots")
 
 print("Plotting finished")
