@@ -101,9 +101,9 @@ emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_e
 dr = calculate_dr(emb_df, 5, "muon", filter=None)
 emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
-filter_list = get_filter_list()
-dr = calculate_dr(emb_df, 5, "muon", filter=filter_list)
-emb_df_matched_filtered, muon_id_matched_filtered, dr_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
+# filter_list = get_filter_list()
+# dr = calculate_dr(emb_df, 5, "muon", filter=filter_list)
+# emb_df_matched_filtered, muon_id_matched_filtered, dr_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 print("Genmatching applied")
 
@@ -133,11 +133,11 @@ ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"dr_matched.png"))
 plt.close()
 
-#dr between l|m muon data and l|m muon embedding with filters
-ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
-plt.close()
+# #dr between l|m muon data and l|m muon embedding with filters
+# ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
+# ax.set_yscale("log")
+# plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
+# plt.close()
 
 #frequency of muon id to be used as l|m muon
 ax = match_plot(muon_id_matched)
@@ -145,11 +145,11 @@ ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"id_matched.png"))
 plt.close()
 
-#frequency of muon id to be used as l|m muon
-ax = match_plot(muon_id_matched_filtered)
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"id_matched+filtered.png"))
-plt.close()
+# #frequency of muon id to be used as l|m muon
+# ax = match_plot(muon_id_matched_filtered)
+# ax.set_yscale("log")
+# plt.savefig(os.path.join(match_plot_path, f"id_matched+filtered.png"))
+# plt.close()
 
 print("Created plots")
 
@@ -159,7 +159,7 @@ print("Created plots")
 
 data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
 emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched)
-emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered)
+# emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered)
 
 print("Added m_vis and pt_vis")
 
@@ -171,8 +171,8 @@ print("Added m_vis and pt_vis")
 dr = calculate_dr(emb_df_matched, 5, "jet", filter=None)
 emb_df_matched, _, _ = apply_genmatching(dr.copy(), emb_df_matched, "jet")
 
-dr = calculate_dr(emb_df_matched_filtered, 5, "jet")
-emb_df_matched_filtered, _, _ = apply_genmatching(dr.copy(), emb_df_matched_filtered, "jet")
+# dr = calculate_dr(emb_df_matched_filtered, 5, "jet")
+# emb_df_matched_filtered, _, _ = apply_genmatching(dr.copy(), emb_df_matched_filtered, "jet")
 
 data_df["LJ_pt"] = data_df["Jet_pt_1"].copy(deep=True)
 data_df["TJ_pt"] = data_df["Jet_pt_2"].copy(deep=True)
@@ -193,7 +193,7 @@ initialize_dir(output_path)
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
 store.put("data_df", data_df, index=False)
 store.put("emb_df_matched", emb_df_matched, index=False)
-store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
+# store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
 store.close()
 
 print("Data stored in hdf store")
