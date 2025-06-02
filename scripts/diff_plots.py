@@ -155,6 +155,51 @@ verify_events(data_df, emb_df_matched)
 print("Data loaded and verified")
 
 
+########################################################################################################################################################################
+# Creating plots that show the difference of equally named columns from to different datasets
+# the plots will show the absolute and the relative difference
+########################################################################################################################################################################
+
+
+for quantity in plotting_instructions:
+    for mode in ["custom", "default"]:
+        for relative in [True, False]:
+            if mode == "default":
+                bins = nbins
+            elif mode == "custom" and relative:
+                bins = quantity["rel_bins"]
+            elif mode == "custom" and not relative:
+                bins = quantity["bins"]
+
+            col = quantity["col"]
+
+            q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
+            
+            if relative:
+                title = quantity["rel_title"]
+                q_diff = divide_columns(q_diff, np.abs(data_df[col]))
+                path = rel_output_path
+            else:
+                title = quantity["title"]
+                path = abs_output_path
+
+            ax = histogram(q_diff, bins, title)
+
+            if quantity["xlog"]:
+                ax.set_xscale("log")
+            if quantity["ylog"]:
+                ax.set_yscale("log")
+            
+            plt.savefig(os.path.join(path, mode, f"{col}.png"))
+            plt.close()
+
+print("Created diff plots")
+
+
+print("Plotting finished")
+
+
+
 #comparison plots
 
 # for quantity in plotting_instructions:
@@ -199,49 +244,4 @@ print("Data loaded and verified")
 
 # print("Created triple comparison plots")
 
-
-
-
-########################################################################################################################################################################
-# Creating plots that show the difference of equally named columns from to different datasets
-# the plots will show the absolute and the relative difference
-########################################################################################################################################################################
-
-
-for quantity in plotting_instructions:
-    for mode in ["custom", "default"]:
-        for relative in [True, False]:
-            if mode == "default":
-                bins = nbins
-            elif mode == "custom" and relative:
-                bins = quantity["rel_bins"]
-            elif mode == "custom" and not relative:
-                bins = quantity["bins"]
-
-            col = quantity["col"]
-
-            q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
-            
-            if relative:
-                title = quantity["rel_title"]
-                q_diff = divide_columns(q_diff, np.abs(data_df[col]))
-                path = rel_output_path
-            else:
-                title = quantity["title"]
-                path = abs_output_path
-
-            ax = histogram(q_diff, bins, title)
-
-            if quantity["xlog"]:
-                ax.set_xscale("log")
-            if quantity["ylog"]:
-                ax.set_yscale("log")
-            
-            plt.savefig(os.path.join(path, mode, f"{col}.png"))
-            plt.close()
-
-print("Created diff plots")
-
-
-print("Plotting finished")
 
