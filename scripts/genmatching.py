@@ -197,7 +197,6 @@ def apply_genmatching(dr_arr, df, mode):
             tm_phi[n_event] = np.nan
             tm_m[n_event] = np.nan
 
-
     matched_df = pd.DataFrame({
         f"{pt_target_1}": pd.Series(lm_pt),
         f"{pt_target_2}": pd.Series(tm_pt),
