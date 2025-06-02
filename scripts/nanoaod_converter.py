@@ -8,7 +8,7 @@ import pathlib
 
 from importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
 from genmatching import calculate_dr, apply_genmatching, get_filter_list
-from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns
+from helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching
 from plotting import match_plot, dr_plot
 
 ########################################################################################################################################################################
@@ -122,15 +122,15 @@ deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
 dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
 #dr between muon1|2 data and muon1|2 embedding
-ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{unmatched}$")
+ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{µ, unmatched}$")
 ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"dr_unmatched.png"))
+plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
 plt.close()
 
 #dr between l|m muon data and l|m muon embedding
-ax = dr_plot(dr_matched, r"$\delta r_\text{matched}$")
+ax = dr_plot(dr_matched, r"$\delta r_\text{µ, matched}$")
 ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"dr_matched.png"))
+plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
 plt.close()
 
 # #dr between l|m muon data and l|m muon embedding with filters
@@ -140,9 +140,9 @@ plt.close()
 # plt.close()
 
 #frequency of muon id to be used as l|m muon
-ax = match_plot(muon_id_matched)
+ax = match_plot(muon_id_matched, "Closest muon")
 ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"id_matched.png"))
+plt.savefig(os.path.join(match_plot_path, f"muon_id_matched.png"))
 plt.close()
 
 # #frequency of muon id to be used as l|m muon
@@ -168,22 +168,60 @@ print("Added m_vis and pt_vis")
 # Matching jets
 ########################################################################################################################################################################
 
-dr = calculate_dr(emb_df_matched, 5, "jet", filter=None)
-emb_df_matched, _, _ = apply_genmatching(dr.copy(), emb_df_matched, "jet")
+data_df, emb_df_matched = prepare_jet_matching(data_df, emb_df_matched)
+dr = calculate_dr(emb_df_matched, 10, "jet", filter=None)
+
+emb_df_for_matching = get_matching_df(emb_df_matched, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
+emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
 
 # dr = calculate_dr(emb_df_matched_filtered, 5, "jet")
 # emb_df_matched_filtered, _, _ = apply_genmatching(dr.copy(), emb_df_matched_filtered, "jet")
 
-data_df["LJ_pt"] = data_df["Jet_pt_1"].copy(deep=True)
-data_df["TJ_pt"] = data_df["Jet_pt_2"].copy(deep=True)
-data_df["LJ_eta"] = data_df["Jet_eta_1"].copy(deep=True)
-data_df["TJ_eta"] = data_df["Jet_eta_2"].copy(deep=True)
-data_df["LJ_phi"] = data_df["Jet_phi_1"].copy(deep=True)
-data_df["TJ_phi"] = data_df["Jet_phi_2"].copy(deep=True)
-data_df["LJ_m"] = data_df["Jet_m_1"].copy(deep=True)
-data_df["TJ_m"] = data_df["Jet_m_2"].copy(deep=True)
-
 print("Jets matched")
+
+########################################################################################################################################################################
+# Creating plots indicating performance of jet matching
+########################################################################################################################################################################
+
+dphi_1 = subtract_columns(emb_df_matched["Jet_phi_1"], data_df["LJ_phi"], "phi_1")
+deta_1 = subtract_columns(emb_df_matched["Jet_eta_1"], data_df["LJ_eta"], "eta_1")
+dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
+dphi_2 = subtract_columns(emb_df_matched["Jet_phi_2"], data_df["TJ_phi"], "phi_2")
+deta_2 = subtract_columns(emb_df_matched["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
+dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
+
+#dr between muon1|2 data and muon1|2 embedding
+ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{Jet, unmatched}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
+plt.close()
+
+#dr between l|m muon data and l|m muon embedding
+ax = dr_plot(jet_dr_matched, r"$\delta r_\text{Jet, matched}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
+plt.close()
+
+# #dr between l|m muon data and l|m muon embedding with filters
+# ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
+# ax.set_yscale("log")
+# plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
+# plt.close()
+
+#frequency of muon id to be used as l|m muon
+ax = match_plot(jet_id_matched, "Closest Jet")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"jet_id_matched.png"))
+plt.close()
+
+# #frequency of muon id to be used as l|m muon
+# ax = match_plot(muon_id_matched_filtered)
+# ax.set_yscale("log")
+# plt.savefig(os.path.join(match_plot_path, f"id_matched+filtered.png"))
+# plt.close()
+
+print("Created plots")
+
 
 ########################################################################################################################################################################
 # Storing datarames in hdf store

@@ -56,6 +56,27 @@ def get_matching_df(df, rm_cols):
 
     return df_copy
 
+def prepare_jet_matching(data, emb):
+
+    data["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
+    data["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
+    data["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
+    data["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
+    data["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
+    data["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
+    data["LJ_m"] = data["Jet_m_1"].copy(deep=True)
+    data["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+
+    emb["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
+    emb["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
+    emb["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
+    emb["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
+    emb["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
+    emb["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
+    emb["LJ_m"] = data["Jet_m_1"].copy(deep=True)
+    emb["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+
+    return data, emb
 
 def verify_events(*data):
     #checks whether all dataframes have the same order
