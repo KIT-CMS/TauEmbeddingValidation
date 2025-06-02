@@ -36,10 +36,10 @@ data_quantities = [
     {"key":"Muon_pt",           "target":"pt",              "expand":True},
     {"key":"Muon_eta",          "target":"eta",             "expand":True},
     {"key":"Muon_mass",         "target":"m",               "expand":True},
-    {"key":"Jet_phi",           "target":"Jet_phi",         "expand":False},
-    {"key":"Jet_pt",            "target":"Jet_pt",          "expand":False},
-    {"key":"Jet_eta",           "target":"Jet_eta",         "expand":False},
-    {"key":"Jet_mass",          "target":"Jet_mass",        "expand":False},
+    {"key":"Jet_phi",           "target":"Jet_phi",         "expand":True},
+    {"key":"Jet_pt",            "target":"Jet_pt",          "expand":True},
+    {"key":"Jet_eta",           "target":"Jet_eta",         "expand":True},
+    {"key":"Jet_mass",          "target":"Jet_m",        "expand":True},
     {"key":"run",               "target":"run",             "expand":False},
     {"key":"luminosityBlock",   "target":"lumi",            "expand":False},
     {"key":"event",             "target":"event",           "expand":False}
@@ -98,12 +98,12 @@ print("Copied to data:", selection_q_converted)
 
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
-dr = calculate_dr(emb_df, 5, filter=None)
-emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+dr = calculate_dr(emb_df, 5, "muon", filter=None)
+emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 filter_list = get_filter_list()
-dr = calculate_dr(emb_df, 5, filter=filter_list)
-emb_df_matched_filtered, muon_id_matched_filtered, dr_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True))
+dr = calculate_dr(emb_df, 5, "muon", filter=filter_list)
+emb_df_matched_filtered, muon_id_matched_filtered, dr_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 print("Genmatching applied")
 
@@ -163,10 +163,31 @@ emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt
 
 print("Added m_vis and pt_vis")
 
+
+########################################################################################################################################################################
+# Matching jets
+########################################################################################################################################################################
+
+dr = calculate_dr(emb_df_matched, 5, "jet", filter=None)
+emb_df_matched, _, _ = apply_genmatching(dr.copy(), emb_df_matched, "jet")
+
+dr = calculate_dr(emb_df_matched_filtered, 5, "jet")
+emb_df_matched_filtered, _, _ = apply_genmatching(dr.copy(), emb_df_matched_filtered, "jet")
+
+data_df["LJ_pt"] = data_df["Jet_pt_1"].copy(deep=True)
+data_df["TJ_pt"] = data_df["Jet_pt_2"].copy(deep=True)
+data_df["LJ_eta"] = data_df["Jet_eta_1"].copy(deep=True)
+data_df["TJ_eta"] = data_df["Jet_eta_2"].copy(deep=True)
+data_df["LJ_phi"] = data_df["Jet_phi_1"].copy(deep=True)
+data_df["TJ_phi"] = data_df["Jet_phi_2"].copy(deep=True)
+data_df["LJ_m"] = data_df["Jet_m_1"].copy(deep=True)
+data_df["TJ_m"] = data_df["Jet_m_2"].copy(deep=True)
+
+print("Jets matched")
+
 ########################################################################################################################################################################
 # Storing datarames in hdf store
 ########################################################################################################################################################################
-
 initialize_dir(output_path)
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  

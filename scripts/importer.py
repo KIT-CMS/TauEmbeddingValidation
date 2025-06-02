@@ -14,6 +14,7 @@ def nanoaod_to_dataframe(files, quantities):
 
     # initialization
     for path in files:
+        print(f"Reading: {path}")
         nanoaod = uproot.open(path)
 
         nanoaod = nanoaod["Events;1"]
