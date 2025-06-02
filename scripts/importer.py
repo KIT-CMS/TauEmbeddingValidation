@@ -19,7 +19,7 @@ def nanoaod_to_dataframe(files, quantities):
 
         nanoaod = nanoaod["Events;1"]
 
-        events = pd.DataFrame()
+        events = {}
 
         for quantity in quantities:
             #this is a column of a nanoaod
@@ -55,7 +55,8 @@ def nanoaod_to_dataframe(files, quantities):
                 #returning the plain column if it is not nested
                 else:
                     events[target_name] = pd.Series(temp)
-        master_df = pd.concat([master_df, events], ignore_index=True)
+        events_df = pd.DataFrame(events)
+        master_df = pd.concat([master_df, events_df], ignore_index=True)
 
     master_df = master_df.drop_duplicates(["event", "lumi", "run"])
 
