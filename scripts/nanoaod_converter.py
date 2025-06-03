@@ -39,7 +39,7 @@ data_quantities = [
     {"key":"Jet_phi",           "target":"Jet_phi",         "expand":True},
     {"key":"Jet_pt",            "target":"Jet_pt",          "expand":True},
     {"key":"Jet_eta",           "target":"Jet_eta",         "expand":True},
-    {"key":"Jet_mass",          "target":"Jet_m",        "expand":True},
+    {"key":"Jet_mass",          "target":"Jet_m",           "expand":True},
     {"key":"run",               "target":"run",             "expand":False},
     {"key":"luminosityBlock",   "target":"lumi",            "expand":False},
     {"key":"event",             "target":"event",           "expand":False}
