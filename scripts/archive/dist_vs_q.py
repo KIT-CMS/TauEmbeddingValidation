@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import vector
 
-from plotting import x_vs_y
+from source.plotting import x_vs_y
 
 
 hdf_path = "./data/converted/converted_nanoaod.h5"

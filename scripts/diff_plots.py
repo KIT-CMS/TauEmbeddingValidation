@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from plotting import histogram
-from importer import initialize_dir
-from genmatching import subtract_columns
-from helper import divide_columns, verify_events
+from source.plotting import histogram
+from source.importer import initialize_dir
+from source.genmatching import subtract_columns
+from source.helper import divide_columns, verify_events
 
 
 
