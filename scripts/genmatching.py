@@ -43,13 +43,13 @@ def calculate_dr(df, n_col, mode, filter=None):
             comp_eta = "Jet_eta"
             comp_pt = "Jet_pt"
             if n == 1:
-                master_eta = "LM_eta"#comparing the first jet
-                master_phi = "LM_phi"
-                master_pt = "LM_pt"
+                master_eta = "LJ_eta"#comparing the first jet
+                master_phi = "LJ_phi"
+                master_pt = "LJ_pt"
             elif n == 2:
-                master_eta = "TM_eta"#then comparing the second jet
-                master_phi = "TM_phi"
-                master_pt = "TM_pt"
+                master_eta = "TJ_eta"#then comparing the second jet
+                master_phi = "TJ_phi"
+                master_pt = "TJ_pt"
         else:
             raise ValueError("Invalid mode selected")
         

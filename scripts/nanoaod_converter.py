@@ -101,9 +101,6 @@ emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_e
 dr = calculate_dr(emb_df, 5, "muon", filter=None)
 emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
-# filter_list = get_filter_list()
-# dr = calculate_dr(emb_df, 5, "muon", filter=filter_list)
-# emb_df_matched_filtered, muon_id_matched_filtered, dr_matched_filtered = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 print("Genmatching applied")
 
@@ -133,23 +130,12 @@ ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
 plt.close()
 
-# #dr between l|m muon data and l|m muon embedding with filters
-# ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
-# ax.set_yscale("log")
-# plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
-# plt.close()
-
 #frequency of muon id to be used as l|m muon
 ax = match_plot(muon_id_matched, "Closest muon")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_id_matched.png"))
 plt.close()
 
-# #frequency of muon id to be used as l|m muon
-# ax = match_plot(muon_id_matched_filtered)
-# ax.set_yscale("log")
-# plt.savefig(os.path.join(match_plot_path, f"id_matched+filtered.png"))
-# plt.close()
 
 print("Created plots")
 
@@ -159,7 +145,6 @@ print("Created plots")
 
 data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
 emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched)
-# emb_df_matched_filtered["m_vis"], emb_df_matched_filtered["pt_vis"] = get_z_m_pt(emb_df_matched_filtered)
 
 print("Added m_vis and pt_vis")
 
@@ -173,9 +158,6 @@ dr = calculate_dr(emb_df_matched, 10, "jet", filter=None)
 
 emb_df_for_matching = get_matching_df(emb_df_matched, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
-
-# dr = calculate_dr(emb_df_matched_filtered, 5, "jet")
-# emb_df_matched_filtered, _, _ = apply_genmatching(dr.copy(), emb_df_matched_filtered, "jet")
 
 print("Jets matched")
 
@@ -202,11 +184,6 @@ ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
 plt.close()
 
-# #dr between l|m muon data and l|m muon embedding with filters
-# ax = dr_plot(dr_matched_filtered, r"$\delta r_\text{matched+filtered}$")
-# ax.set_yscale("log")
-# plt.savefig(os.path.join(match_plot_path, f"dr_matched+filtered.png"))
-# plt.close()
 
 #frequency of muon id to be used as l|m muon
 ax = match_plot(jet_id_matched, "Closest Jet")
@@ -214,11 +191,6 @@ ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"jet_id_matched.png"))
 plt.close()
 
-# #frequency of muon id to be used as l|m muon
-# ax = match_plot(muon_id_matched_filtered)
-# ax.set_yscale("log")
-# plt.savefig(os.path.join(match_plot_path, f"id_matched+filtered.png"))
-# plt.close()
 
 print("Created plots")
 
