@@ -7,9 +7,9 @@ import numpy as np
 import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
-from source.genmatching import calculate_dr, apply_genmatching, get_filter_list
+from source.genmatching import calculate_dr, apply_genmatching
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching
-from source.plotting import match_plot, dr_plot
+from source.plotting import match_plot, nq_comparison
 
 ########################################################################################################################################################################
 # paths for input and output 
@@ -119,19 +119,20 @@ deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
 dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
 #dr between muon1|2 data and muon1|2 embedding
-ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{µ, unmatched}$")
+
+ax = nq_comparison({"Leadin µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
 plt.close()
 
 #dr between l|m muon data and l|m muon embedding
-ax = dr_plot(dr_matched, r"$\delta r_\text{µ, matched}$")
+ax = nq_comparison({"Leadin µ":dr_matched[:,0], "Trailing µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
 plt.close()
 
 #frequency of muon id to be used as l|m muon
-ax = match_plot(muon_id_matched, "Closest muon")
+ax = match_plot(muon_id_matched, "ID of closest µ")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_id_matched.png"))
 plt.close()
@@ -173,20 +174,20 @@ deta_2 = subtract_columns(emb_df_matched["Jet_eta_2"], data_df["TJ_eta"], "eta_2
 dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
 #dr between muon1|2 data and muon1|2 embedding
-ax = dr_plot(np.column_stack([dr_1, dr_2]), r"$\delta r_\text{Jet, unmatched}$")
+ax = nq_comparison({"Leadin jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
 plt.close()
 
 #dr between l|m muon data and l|m muon embedding
-ax = dr_plot(jet_dr_matched, r"$\delta r_\text{Jet, matched}$")
+ax = nq_comparison({"Leadin jet":jet_dr_matched[:,0], "Trailing jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
 plt.close()
 
 
 #frequency of muon id to be used as l|m muon
-ax = match_plot(jet_id_matched, "Closest Jet")
+ax = match_plot(jet_id_matched, "ID of closest jet")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"jet_id_matched.png"))
 plt.close()

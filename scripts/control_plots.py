@@ -15,10 +15,10 @@ from source.helper import verify_events
 ########################################################################################################################################################################
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
-comparison_output_path = "./output/control_plots/comparison"
+# comparison_output_path = "./output/control_plots/comparison"
 control_output_path = "./output/control_plots/normal"
 
-initialize_dir(comparison_output_path, ["default", "custom"])
+# initialize_dir(comparison_output_path, ["default", "custom"])
 initialize_dir(control_output_path, ["default", "custom"])
 
 print("Initialized directories")
@@ -50,7 +50,7 @@ plotting_instructions = [
         "xlog":False}, 
     {"col":"LJ_pt",           
         "bins":np.linspace(0, 250, nbins),      
-        "title":r"LJet $p_\text{T}",              
+        "title":r"LJet $p_\text{T}$",              
         "dy":None,
         "ylog":True,    
         "xlog":False}, 
@@ -74,7 +74,7 @@ plotting_instructions = [
         "xlog":False}, 
     {"col":"TJ_pt",           
         "bins":np.linspace(0, 250, nbins),      
-        "title":r"TJet $p_\text{T}",              
+        "title":r"TJet $p_\text{T}$",              
         "dy":None,
         "ylog":True,    
         "xlog":False}, 

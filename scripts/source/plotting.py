@@ -229,18 +229,13 @@ def match_plot(fit, title):
     best_fit2 = np.where(np.isnan(best_fit2), -1, best_fit2)
 
     max_id = ticks[-1] + 1.5
-    ax = nq_comparison({"LM":best_fit1, "TM":best_fit2}, np.arange(-1.5, max_id, 1), title)
+    if "jet" in title:
+        ax = nq_comparison({"Leading jet":best_fit1, "Trailing jet":best_fit2}, np.arange(-1.5, max_id, 1), title)
+    else:
+        ax = nq_comparison({"Leading µ":best_fit1, "Trailing µ":best_fit2}, np.arange(-1.5, max_id, 1), title)
+
     ax.set_yscale("log")
     ax.set_xticks(ticks)
     ax.set_xticklabels(tick_labels)
-
-    return ax
-
-def dr_plot(dr, title):
-    #plotting dr distributions
-    dr1 = dr[:,0]
-    dr2 = dr[:,1]
-
-    ax = nq_comparison({"LM":dr1, "TM":dr2}, 30, title)
 
     return ax
