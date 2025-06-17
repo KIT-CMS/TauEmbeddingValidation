@@ -6,6 +6,8 @@ import vector
 from pathlib import Path
 import shutil
 
+from source.helper import get_n_occurence, col_is_expanded
+
 def nanoaod_to_dataframe(files, quantities):
     #imports all files in files and concatenates them
     master_df = pd.DataFrame()
@@ -126,17 +128,6 @@ def initialize_dir(base_path: str, subfolders: list[str]=None):
             (base_dir / sub).mkdir(parents=True, exist_ok=True)
 
 
-
-def col_is_expanded(quantities, col):
-    # checks in importing instructions whether a column is being expanded or not
-    for q in quantities:
-        if q["target"] == col:#q["target"] contains the column name 
-            return q["expand"]#and this is the variable for setting expansion rules
-        
-    raise ValueError("Column not found")
-
-
-
 def quality_cut(df, quantities, filter_dict):
     # this function applies a list of filters to the dataframe and removes cells (not rows!!) where the requirements are not being met
     # thereby the muon number and jet number of each event can be reduced 
@@ -211,15 +202,6 @@ def only_global_muons(df):
     return df
 
 
-def get_n_occurence(df, basename):
-    #returns the occurence of a column. pt_1, pt_2 is counted as pt
-    n = 0
-    for col in df.columns: 
-        if col.startswith(basename):
-            n += 1
-
-    return n
-
 
 def compactify_objects(df):
     # this function ensures that there a no empty objects in the dataset. if muon3 is empty but muon5 isnt, the quantities from muon5 are moved to the left.
@@ -227,8 +209,7 @@ def compactify_objects(df):
 
     # repeating for jets and muons (prefix is the difference between a muon quantity such as pt and a jet quantity "Jet_pt" )
     for prefix in ["", "Jet_"]:
-        n = get_n_occurence(df, f"{prefix}pt")#number of objects
-
+        n = get_n_occurence(df, f"{prefix}eta")#number of objects
         #this function takes all columns of a quantity such as pt as input and returns it with nans at the end: [1,2,nan,nan,3] -> [1,2,3,nan,nan]
         def shift_left(row):
             non_nans = row[~np.isnan(row)]
@@ -236,7 +217,7 @@ def compactify_objects(df):
 
         q_length = []#array for applying a short consistency check
 
-        for q in ["pt", "eta", "phi"]:
+        for q in ["pt", "eta", "phi", "m"]:
 
             q_l = []#will contain the lengths of the single quantitiy columns (q_1, q_2...)
             

@@ -143,3 +143,23 @@ def set_working_dir():
 
     path = os.getcwd()#directory of jupyter notebook
     print(f"Working dir: {path}")
+
+
+def col_is_expanded(quantities, col):
+    # checks in importing instructions whether a column is being expanded or not
+    for q in quantities:
+        if q["target"] == col:#q["target"] contains the column name 
+            return q["expand"]#and this is the variable for setting expansion rules
+        
+    raise ValueError("Column not found")
+
+
+
+def get_n_occurence(df, basename):
+    #returns the occurence of a column. pt_1, pt_2 is counted as pt
+    n = 0
+    for col in df.columns: 
+        if col.startswith(basename):
+            n += 1
+
+    return n

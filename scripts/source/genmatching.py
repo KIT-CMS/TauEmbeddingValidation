@@ -2,7 +2,7 @@ import uproot
 import os
 import pandas as pd
 import numpy as np
-from source.helper import subtract_columns
+from source.helper import subtract_columns, get_n_occurence
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
@@ -17,14 +17,27 @@ def get_filter_list():
 
 
 #following code is for genmatching
-def calculate_dr(df, n_col, mode, filter=None):
+def calculate_dr(df, mode, filter=None):
     #this function returns the dr value for all particle combination from embedding
     #the first "n_data" particles of data are compare to the first "n_emb" particles of the embeddign dataset
 
-    dr_arr = np.full(shape=(len(df), 2, n_col), dtype=float, fill_value=np.nan)
+    if mode == "muon":
+        n_comp = get_n_occurence(df, "eta")
+        n_target = 2
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "jet":
+        n_comp = get_n_occurence(df, "Jet_eta")
+        n_target = 2
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "filter":
+        n_comp = get_n_occurence(df, "eta")
+        n_target = get_n_occurence(df, "Jet_pt")
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    else:
+        raise ValueError("Invalid mode selected")
 
     #looping over all data particle and embedding particle combinations
-    for n in range(1, 3):
+    for n in range(1, n_target+1):
         #if dr should be calculated between muon, the columns to be used are different from the columns in the jet case. the following clauses assign the names of the columns based on the mode. 
         if mode=="muon":
             comp_phi = "phi"#this is the name of the columns that the 2 relevant muons are being compared to (simply all muon columns)
@@ -50,13 +63,21 @@ def calculate_dr(df, n_col, mode, filter=None):
                 master_eta = "TJ_eta"#then comparing the second jet
                 master_phi = "TJ_phi"
                 master_pt = "TJ_pt"
-        else:
-            raise ValueError("Invalid mode selected")
+        elif mode=="filter":
+            comp_phi = "phi"
+            comp_eta = "eta"
+            comp_pt = "pt"
+            master_eta = "Jet_eta"#comparing the first jet
+            master_phi = "Jet_phi"
+            master_pt = "Jet_pt"
         
-        for n_m in range(1, n_col+1):
-            eta_diff = subtract_columns(df[master_eta], df[f"{comp_eta}_{n_m}"], "eta_")
-            phi_diff = subtract_columns(df[master_phi], df[f"{comp_phi}_{n_m}"], "phi_")
-
+        for n_m in range(1, n_comp+1):
+            if mode == "filter":
+                eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}_{n_m}"], "eta_")
+                phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df[f"{comp_phi}_{n_m}"], "phi_")
+            else:
+                eta_diff = subtract_columns(df[master_eta], df[f"{comp_eta}_{n_m}"], "eta_")
+                phi_diff = subtract_columns(df[master_phi], df[f"{comp_phi}_{n_m}"], "phi_")
             #calculating the dr value between them for all events
             dr_temp = np.sqrt(np.square(eta_diff) + np.square(phi_diff))
 
@@ -242,3 +263,14 @@ def get_closest_muon_data(dr_arr):
     
     return index, mu_dr
 
+
+def remove_muon_jets(df, dr_arr):
+    for n_j in range(dr_arr.shape[1]):
+        for n_m in range(dr_arr.shape[2]):
+            subset = dr_arr[:,n_j,n_m]
+            mask = subset<0.1
+            df.loc[mask, f"Jet_eta_{n_j+1}"] = np.nan
+            df.loc[mask, f"Jet_m_{n_j+1}"] = np.nan
+            df.loc[mask, f"Jet_phi_{n_j+1}"] = np.nan
+            df.loc[mask, f"Jet_pt_{n_j+1}"] = np.nan
+    return df

@@ -7,7 +7,7 @@ import numpy as np
 import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
-from source.genmatching import calculate_dr, apply_genmatching
+from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching, set_working_dir
 from source.plotting import match_plot, nq_comparison
 
@@ -81,7 +81,7 @@ emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 print("Data loaded")
 
 ########################################################################################################################################################################
-# Applying quality cuts
+# Applying quality filters
 ########################################################################################################################################################################
 filter_dict = [
     {"col":"pt",  "min":10,  "max":None},
@@ -90,14 +90,18 @@ filter_dict = [
 
 data_df = only_global_muons(data_df)
 data_df = quality_cut(data_df, data_quantities, filter_dict)
+dr = calculate_dr(data_df, "filter", filter=None)
+data_df = remove_muon_jets(data_df, dr)
 data_df = assert_object_validity(data_df, 2)
 data_df = compactify_objects(data_df)
 
-
 emb_df = only_global_muons(emb_df)
 emb_df = quality_cut(emb_df, data_quantities, filter_dict)
+dr = calculate_dr(emb_df, "filter", filter=None)
+emb_df = remove_muon_jets(emb_df, dr)
 emb_df = assert_object_validity(emb_df, 2)
 emb_df = compactify_objects(emb_df)
+
 
 print("Filtered objects")
 
@@ -124,7 +128,7 @@ print("Copied to data:", selection_q_converted)
 
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
-dr = calculate_dr(emb_df, 4, "muon", filter=None)
+dr = calculate_dr(emb_df, "muon", filter=None)
 emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 
@@ -181,7 +185,7 @@ print("Added m_vis and pt_vis")
 ########################################################################################################################################################################
 
 data_df, emb_df_matched = prepare_jet_matching(data_df, emb_df_matched)
-dr = calculate_dr(emb_df_matched, 10, "jet", filter=None)
+dr = calculate_dr(emb_df_matched, "jet", filter=None)
 
 emb_df_for_matching = get_matching_df(emb_df_matched, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
