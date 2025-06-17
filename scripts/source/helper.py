@@ -119,3 +119,27 @@ def copy_columns_from_to(from_df, to_df, columns):
     to_df[columns] = cols_to_copy
 
     return from_df, to_df
+
+
+def set_working_dir():
+    #sets working dir to the validation suite folder so that jupyter notebooks and scripts behave the same and the paths do not need to be altered
+
+    path = os.getcwd()
+
+    assert "validation_suite" in path, "You renamed the folder without my permission. "
+
+    folders = path.split("/")
+
+    new_path = ""
+
+    for element in folders:
+        if element != "validation_suite":
+            new_path += element + "/"
+        else:
+            new_path += element + "/"
+            break
+    #setting the working directory to the validation suite folder
+    os.chdir(new_path)
+
+    path = os.getcwd()#directory of jupyter notebook
+    print(f"Working dir: {path}")

@@ -8,8 +8,10 @@ import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir
 from source.genmatching import calculate_dr, apply_genmatching
-from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching
+from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching, set_working_dir
 from source.plotting import match_plot, nq_comparison
+
+from source.importer import quality_cut, assert_object_validity, only_global_muons, compactify_objects
 
 ########################################################################################################################################################################
 # paths for input and output 
@@ -23,6 +25,8 @@ emb_filenames = "2022G-emb_gen_*.root"
 output_path = "./data/converted"
 
 match_plot_path = "./output/match_plots"
+
+set_working_dir()
 
 ########################################################################################################################################################################
 # columns to be read and their new names in the resulting df
@@ -42,7 +46,8 @@ data_quantities = [
     {"key":"Jet_mass",          "target":"Jet_m",           "expand":True},
     {"key":"run",               "target":"run",             "expand":False},
     {"key":"luminosityBlock",   "target":"lumi",            "expand":False},
-    {"key":"event",             "target":"event",           "expand":False}
+    {"key":"event",             "target":"event",           "expand":False},
+    {"key":"Muon_isGlobal",     "target":"MuonIsGlobal",    "expand":True}
 ]
 
 selection_q = [
@@ -76,6 +81,27 @@ emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 print("Data loaded")
 
 ########################################################################################################################################################################
+# Applying quality cuts
+########################################################################################################################################################################
+filter_dict = [
+    {"col":"pt",  "min":10,  "max":None},
+    {"col":"Jet_pt",  "min":25,  "max":None}
+]
+
+data_df = only_global_muons(data_df)
+data_df = quality_cut(data_df, data_quantities, filter_dict)
+data_df = assert_object_validity(data_df, 2)
+data_df = compactify_objects(data_df)
+
+
+emb_df = only_global_muons(emb_df)
+emb_df = quality_cut(emb_df, data_quantities, filter_dict)
+emb_df = assert_object_validity(emb_df, 2)
+emb_df = compactify_objects(emb_df)
+
+print("Filtered objects")
+
+########################################################################################################################################################################
 # Keeping only those events that are both in data and embedding 
 ########################################################################################################################################################################
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
@@ -98,7 +124,7 @@ print("Copied to data:", selection_q_converted)
 
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
-dr = calculate_dr(emb_df, 5, "muon", filter=None)
+dr = calculate_dr(emb_df, 4, "muon", filter=None)
 emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 
