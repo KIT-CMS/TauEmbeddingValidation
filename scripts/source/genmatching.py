@@ -265,6 +265,7 @@ def get_closest_muon_data(dr_arr):
 
 
 def remove_muon_jets(df, dr_arr):
+    #removes those jets that are closer than "value" to a muon
     for n_j in range(dr_arr.shape[1]):
         for n_m in range(dr_arr.shape[2]):
             subset = dr_arr[:,n_j,n_m]

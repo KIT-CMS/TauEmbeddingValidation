@@ -182,7 +182,8 @@ def assert_object_validity(df, n_min):
 
             n_muon += np.where(mask, 0, 1)#counting how many muons are remaining
 
-        df = df[n_muon >= n_min]#requiring at least 2 muons and jets
+        if prefix == "":
+            df = df[n_muon >= n_min]#requiring at least 2 muons and jets
 
     return df
 
