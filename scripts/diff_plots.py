@@ -8,7 +8,7 @@ import numpy as np
 from source.plotting import histogram
 from source.importer import initialize_dir
 from source.genmatching import subtract_columns
-from source.helper import divide_columns, verify_events
+from source.helper import divide_columns, verify_events, set_working_dir
 
 
 
@@ -24,6 +24,7 @@ rel_output_path = "./output/diff_plots/rel_diff"
 initialize_dir(abs_output_path, ["default", "custom"])
 initialize_dir(rel_output_path, ["default", "custom"])
 
+set_working_dir()
 
 print("Initialized directories")
 

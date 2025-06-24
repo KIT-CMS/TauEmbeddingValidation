@@ -7,7 +7,7 @@ import numpy as np
 
 from source.plotting import control_plot, nq_comparison
 from source.importer import initialize_dir
-from source.helper import verify_events
+from source.helper import verify_events, set_working_dir
 
 
 ########################################################################################################################################################################
@@ -20,6 +20,8 @@ control_output_path = "./output/control_plots/normal"
 
 # initialize_dir(comparison_output_path, ["default", "custom"])
 initialize_dir(control_output_path, ["default", "custom"])
+
+set_working_dir()
 
 print("Initialized directories")
 
