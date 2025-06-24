@@ -28,6 +28,8 @@ match_plot_path = "./output/match_plots"
 
 set_working_dir()
 
+initialize_dir(match_plot_path)
+
 ########################################################################################################################################################################
 # columns to be read and their new names in the resulting df
 ########################################################################################################################################################################
@@ -81,6 +83,8 @@ emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 print("Data loaded")
 
 print(len(emb_df), len(data_df))
+
+
 ########################################################################################################################################################################
 # Applying quality filters
 ########################################################################################################################################################################
@@ -88,18 +92,19 @@ filter_dict = [
     {"col":"pt",  "min":10,  "max":None},
     {"col":"Jet_pt",  "min":25,  "max":None}
 ]
+dr_cut = 0.1
 
 data_df = only_global_muons(data_df)
 data_df = quality_cut(data_df, data_quantities, filter_dict)
-dr = calculate_dr(data_df, "filter", filter=None)
-data_df = remove_muon_jets(data_df, dr)
+dr1 = calculate_dr(data_df, "filter", filter=None)
+data_df = remove_muon_jets(data_df, dr1, dr_cut)
 data_df = assert_object_validity(data_df, 2)
 data_df = compactify_objects(data_df)
 
 emb_df = only_global_muons(emb_df)
 emb_df = quality_cut(emb_df, data_quantities, filter_dict)
-dr = calculate_dr(emb_df, "filter", filter=None)
-emb_df = remove_muon_jets(emb_df, dr)
+dr2 = calculate_dr(emb_df, "filter", filter=None)
+emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 emb_df = assert_object_validity(emb_df, 2)
 emb_df = compactify_objects(emb_df)
 
@@ -107,6 +112,33 @@ emb_df = compactify_objects(emb_df)
 print("Filtered objects")
 
 print(len(emb_df), len(data_df))
+
+
+########################################################################################################################################################################
+# Creating plots indicating performance of muon removal
+########################################################################################################################################################################
+
+
+dr1 = dr1.flatten()
+dr2 = dr2.flatten()
+
+ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, uncleaned}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"mujet_dr_uncleaned.png"))
+plt.close()
+
+
+dr1 = calculate_dr(data_df, "filter", filter=None).flatten()
+dr2 = calculate_dr(emb_df, "filter", filter=None).flatten()
+
+ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, cleaned}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"mujet_dr_cleaned.png"))
+plt.close()
+
+
+print("Created plots")
+
 ########################################################################################################################################################################
 # Keeping only those events that are both in data and embedding 
 ########################################################################################################################################################################
@@ -140,8 +172,6 @@ print("Genmatching applied")
 ########################################################################################################################################################################
 # Creating plots indicating performance of matching
 ########################################################################################################################################################################
-
-initialize_dir(match_plot_path)
 
 dphi_1 = subtract_columns(emb_df["phi_1"], data_df["phi_1"], "phi_1")
 deta_1 = subtract_columns(emb_df["eta_1"], data_df["eta_1"], "eta_1")

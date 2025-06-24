@@ -264,12 +264,12 @@ def get_closest_muon_data(dr_arr):
     return index, mu_dr
 
 
-def remove_muon_jets(df, dr_arr):
+def remove_muon_jets(df, dr_arr, cut):
     #removes those jets that are closer than "value" to a muon
     for n_j in range(dr_arr.shape[1]):
         for n_m in range(dr_arr.shape[2]):
             subset = dr_arr[:,n_j,n_m]
-            mask = subset<0.1
+            mask = subset<cut
             df.loc[mask, f"Jet_eta_{n_j+1}"] = np.nan
             df.loc[mask, f"Jet_m_{n_j+1}"] = np.nan
             df.loc[mask, f"Jet_phi_{n_j+1}"] = np.nan
