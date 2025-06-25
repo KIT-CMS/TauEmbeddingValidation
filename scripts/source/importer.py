@@ -153,12 +153,12 @@ def quality_cut(df, quantities, filter_dict):
 
     
 
-def assert_object_validity(df, n_min):
+def assert_object_validity(df):
     # this function ensures that muon and jet quantities do not contain any nans. this means that if there is a nan in e.g. eta of muon3, the whole muon is 
     # removed. same for jets
 
     for prefix in ["", "Jet_"]:#applying function on jet and muon quantities
-        n_muon_col = get_n_occurence(df, f"{prefix}pt")#number of objects
+        n_muon_col = get_n_occurence(df, f"{prefix}eta")#number of objects
         
         n_muon = np.zeros(len(df))
 
@@ -182,10 +182,32 @@ def assert_object_validity(df, n_min):
 
             n_muon += np.where(mask, 0, 1)#counting how many muons are remaining
 
-        if prefix == "":
-            df = df[n_muon >= n_min]#requiring at least 2 muons and jets
+    return df
+
+
+def require_min_n(df, col, n):
+    #removes all rows where col_1... col_n do not have at least n entries
+    subset = df[[c for c in df.columns if c.startswith(col)]]
+    mask = subset.notna().sum(axis=1)
+    df = df.loc[mask >= n]
 
     return df
+
+def require_same_n(df1, df2, col):
+    #removes all rows where col_1... coln have different entries in df1 and df2
+    subset1 = df1[[c for c in df1.columns if c.startswith(col)]]
+    subset2 = df2[[c for c in df2.columns if c.startswith(col)]]
+
+    notna1 = subset1.notna().sum(axis=1)
+    notna2 = subset2.notna().sum(axis=1)
+    delta = notna1-notna2
+
+    mask = delta != 0
+    
+    df1 = df1.loc[mask]
+    df2 = df2.loc[mask]
+
+    return df1, df2
 
 
 def only_global_muons(df):

@@ -16,9 +16,8 @@ from source.helper import verify_events, set_working_dir
 
 hdf_path = "./data/converted/converted_nanoaod.h5"
 # comparison_output_path = "./output/control_plots/comparison"
-control_output_path = "./output/control_plots/normal"
+control_output_path = "./output/control_plots/"
 
-# initialize_dir(comparison_output_path, ["default", "custom"])
 initialize_dir(control_output_path, ["default", "custom"])
 
 set_working_dir()

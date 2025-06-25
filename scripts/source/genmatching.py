@@ -31,7 +31,7 @@ def calculate_dr(df, mode, filter=None):
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "filter":
         n_comp = get_n_occurence(df, "eta")
-        n_target = get_n_occurence(df, "Jet_pt")
+        n_target = get_n_occurence(df, "Jet_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     else:
         raise ValueError("Invalid mode selected")
@@ -274,4 +274,5 @@ def remove_muon_jets(df, dr_arr, cut):
             df.loc[mask, f"Jet_m_{n_j+1}"] = np.nan
             df.loc[mask, f"Jet_phi_{n_j+1}"] = np.nan
             df.loc[mask, f"Jet_pt_{n_j+1}"] = np.nan
+            
     return df
