@@ -88,24 +88,30 @@ print(len(emb_df), len(data_df))
 ########################################################################################################################################################################
 # Applying quality filters
 ########################################################################################################################################################################
+
+dr_cut = 0.35
+
+dr1 = calculate_dr(data_df, "filter", filter=None)
+data_df = remove_muon_jets(data_df, dr1, dr_cut)
+dr2 = calculate_dr(emb_df, "filter", filter=None)
+emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
+
+
+data_df = only_global_muons(data_df)
+emb_df = only_global_muons(emb_df)
+
 filter_dict = [
     {"col":"pt",  "min":10,  "max":None},
     {"col":"Jet_pt",  "min":25,  "max":None}
 ]
-dr_cut = 0.35
 
-data_df = only_global_muons(data_df)
 data_df = quality_cut(data_df, data_quantities, filter_dict)
-dr1 = calculate_dr(data_df, "filter", filter=None)
-data_df = remove_muon_jets(data_df, dr1, dr_cut)
-data_df = assert_object_validity(data_df)
-data_df = compactify_objects(data_df)
-
-emb_df = only_global_muons(emb_df)
 emb_df = quality_cut(emb_df, data_quantities, filter_dict)
-dr2 = calculate_dr(emb_df, "filter", filter=None)
-emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
+
+data_df = assert_object_validity(data_df)
 emb_df = assert_object_validity(emb_df)
+
+data_df = compactify_objects(data_df)
 emb_df = compactify_objects(emb_df)
 
 print(len(emb_df), len(data_df))
@@ -115,10 +121,10 @@ emb_df = require_min_n(emb_df, "eta_", 2)
 
 print(len(emb_df), len(data_df))
 
-# data_df = require_min_n(data_df, "Jet_eta_", 1)
-# emb_df = require_min_n(emb_df, "Jet_eta_", 1)
+data_df = require_min_n(data_df, "Jet_eta_", 1)
+emb_df = require_min_n(emb_df, "Jet_eta_", 1)
 
-# print(len(emb_df), len(data_df))
+print(len(emb_df), len(data_df))
 
 
 print("Filtered objects")
@@ -128,25 +134,25 @@ print("Filtered objects")
 ########################################################################################################################################################################
 
 
-# dr1 = dr1.flatten()
-# dr2 = dr2.flatten()
+dr1 = dr1.flatten()
+dr2 = dr2.flatten()
 
-# ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, uncleaned}$")
-# ax.set_yscale("log")
-# plt.savefig(os.path.join(match_plot_path, f"mujet_dr_uncleaned.png"))
-# plt.close()
-
-
-# dr1 = calculate_dr(data_df, "filter", filter=None).flatten()
-# dr2 = calculate_dr(emb_df, "filter", filter=None).flatten()
-
-# ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, cleaned}$")
-# ax.set_yscale("log")
-# plt.savefig(os.path.join(match_plot_path, f"mujet_dr_cleaned.png"))
-# plt.close()
+ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, uncleaned}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"mujet_dr_uncleaned.png"))
+plt.close()
 
 
-# print("Created muon jet removal plots")
+dr1 = calculate_dr(data_df, "filter", filter=None).flatten()
+dr2 = calculate_dr(emb_df, "filter", filter=None).flatten()
+
+ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, cleaned}$")
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"mujet_dr_cleaned.png"))
+plt.close()
+
+
+print("Created muon jet removal plots")
 
 ########################################################################################################################################################################
 # Keeping only those events that are both in data and embedding 
