@@ -86,6 +86,28 @@ print(f"Loaded {len(emb_df)} events")
 
 
 ########################################################################################################################################################################
+# Creating plots comparing jet / muon object
+########################################################################################################################################################################
+
+njet_emb = count_n_objects(emb_df, "Jet_eta_")
+njet_data = count_n_objects(data_df, "Jet_eta_")
+max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
+nmu_emb = count_n_objects(emb_df, "eta_")
+nmu_data = count_n_objects(data_df, "eta_")
+max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+
+ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"n_jet_raw.png"))
+plt.close()
+
+ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"n_mu_raw.png"))
+plt.close()
+
+
+########################################################################################################################################################################
 # Applying quality filters
 ########################################################################################################################################################################
 
@@ -130,7 +152,7 @@ print("Filtered objects")
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
-print(f"Remaining events:   emb: {len(emb_df)}   data: {len(data_df)}")
+print(f"Remaining events:   {len(emb_df)}")
 
 # data_df, emb_df = require_same_n(data_df, emb_df, "Jet_eta_")
 
@@ -152,12 +174,12 @@ nmu_emb = count_n_objects(emb_df, "eta_")
 nmu_data = count_n_objects(data_df, "eta_")
 max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
 
-ax = nq_comparison({"Emb":njet_emb}, np.arange(0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"n_jet_post_filter.png"))
 plt.close()
 
-ax = nq_comparison({"Emb":nmu_emb}, np.arange(0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
+ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"n_mu_post_filter.png"))
 plt.close()
