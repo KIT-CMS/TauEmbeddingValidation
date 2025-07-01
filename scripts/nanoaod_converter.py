@@ -8,7 +8,7 @@ import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n, require_same_n
 from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
-from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching, set_working_dir
+from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching,get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, nq_comparison
 
 from source.importer import quality_cut, assert_object_validity, only_global_muons, compactify_objects
@@ -80,9 +80,9 @@ emb_files = list(pathlib.Path(emb_path).glob(emb_filenames))
 data_df = nanoaod_to_dataframe(files=data_files, quantities=data_quantities)
 emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 
-print("Data loaded")
+data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
-print(len(emb_df), len(data_df))
+print(f"Loaded {len(emb_df)} events")
 
 
 ########################################################################################################################################################################
@@ -114,25 +114,53 @@ emb_df = assert_object_validity(emb_df)
 data_df = compactify_objects(data_df)
 emb_df = compactify_objects(emb_df)
 
-print(len(emb_df), len(data_df))
+print(f"Quality cuts:       emb: {len(emb_df)}  data: {len(data_df)}")
 
 data_df = require_min_n(data_df, "eta_", 2)
 emb_df = require_min_n(emb_df, "eta_", 2)
 
-print(len(emb_df), len(data_df))
+print(f"Min 2 mu:           emb: {len(emb_df)}   data: {len(data_df)}")
 
-data_df = require_min_n(data_df, "Jet_eta_", 1)
-emb_df = require_min_n(emb_df, "Jet_eta_", 1)
+# data_df = require_min_n(data_df, "Jet_eta_", 1)
+# emb_df = require_min_n(emb_df, "Jet_eta_", 1)
 
-print(len(emb_df), len(data_df))
-
+# print(f"Min n jets - emb:{len(emb_df)} - data: {len(data_df)}")
 
 print("Filtered objects")
+
+data_df, emb_df = create_concordant_subsets(data_df, emb_df)
+
+print(f"Remaining events:   emb: {len(emb_df)}   data: {len(data_df)}")
+
+# data_df, emb_df = require_same_n(data_df, emb_df, "Jet_eta_")
+
+# data_df, emb_df = create_concordant_subsets(data_df, emb_df)
+
+verify_events(data_df, emb_df)
+
+print("Data ok")
+
 
 ########################################################################################################################################################################
 # Creating plots indicating performance of muon removal
 ########################################################################################################################################################################
 
+njet_emb = count_n_objects(emb_df, "Jet_eta_")
+njet_data = count_n_objects(data_df, "Jet_eta_")
+max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
+nmu_emb = count_n_objects(emb_df, "eta_")
+nmu_data = count_n_objects(data_df, "eta_")
+max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+
+ax = nq_comparison({"Emb":njet_emb}, np.arange(0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"n_jet_post_filter.png"))
+plt.close()
+
+ax = nq_comparison({"Emb":nmu_emb}, np.arange(0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
+ax.set_yscale("log")
+plt.savefig(os.path.join(match_plot_path, f"n_mu_post_filter.png"))
+plt.close()
 
 dr1 = dr1.flatten()
 dr2 = dr2.flatten()
@@ -154,19 +182,6 @@ plt.close()
 
 print("Created muon jet removal plots")
 
-########################################################################################################################################################################
-# Keeping only those events that are both in data and embedding 
-########################################################################################################################################################################
-data_df, emb_df = create_concordant_subsets(data_df, emb_df)
-
-data_df, emb_df = require_same_n(data_df, emb_df, "Jet_eta_")
-print(len(emb_df), len(data_df))
-
-data_df, emb_df = create_concordant_subsets(data_df, emb_df)
-
-verify_events(data_df, emb_df)
-
-print("Data ok")
 
 ########################################################################################################################################################################
 # copying the columns with info about muons used for embedding to original dataset so that they can be treated equally
@@ -202,13 +217,13 @@ dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
 #dr between muon1|2 data and muon1|2 embedding
 
-ax = nq_comparison({"Leadin µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
+ax = nq_comparison({"Leading µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
 plt.close()
 
 #dr between l|m muon data and l|m muon embedding
-ax = nq_comparison({"Leadin µ":dr_matched[:,0], "Trailing µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
+ax = nq_comparison({"Leading µ":dr_matched[:,0], "Trailing µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
 ax.set_yscale("log")
 plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
 plt.close()

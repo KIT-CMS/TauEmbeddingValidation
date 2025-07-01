@@ -106,7 +106,7 @@ def create_concordant_subsets(df1, df2):
     mask = df1[keys].merge(df2[keys], how="inner")
 
     l3 = len(mask)
-    print(f"Previous lengths: {l1}, {l2} - New length: {l3}")
+    # print(f"Previous lengths: {l1}, {l2} - New length: {l3}")
 
     df1 = df1.merge(mask, how="inner")
     df2 = df2.merge(mask, how="inner")
@@ -163,3 +163,9 @@ def get_n_occurence(df, basename):
             n += 1
 
     return n
+
+def count_n_objects(df, col):
+    subset = df[[c for c in df.columns if c.startswith(col)]]
+    counts = subset.notna().sum(axis=1)
+    
+    return counts

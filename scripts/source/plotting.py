@@ -83,7 +83,7 @@ def divide_arrays(numerator, denominator):
     return result
 
 def histogram(quantity, bins, title):
-    """subtracts both columns from each other and plots them in a histogram"""
+    """simple histogram of the quantity"""
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.set_figheight(14)
