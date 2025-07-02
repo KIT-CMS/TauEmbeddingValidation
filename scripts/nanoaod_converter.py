@@ -26,6 +26,8 @@ output_path = "./data/converted"
 
 match_plot_path = "./output/match_plots"
 
+create_match_plots = True
+
 set_working_dir()
 
 initialize_dir(match_plot_path)
@@ -68,6 +70,7 @@ selection_q = [
 emb_quantities = data_quantities.copy()
 emb_quantities += selection_q
 
+
 ########################################################################################################################################################################
 # Reading data
 ########################################################################################################################################################################
@@ -85,26 +88,35 @@ data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 print(f"Loaded {len(emb_df)} events")
 
 
-########################################################################################################################################################################
 # Creating plots comparing jet / muon object
-########################################################################################################################################################################
+if create_match_plots:
+    njet_emb = count_n_objects(emb_df, "Jet_eta_")
+    njet_data = count_n_objects(data_df, "Jet_eta_")
+    max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
-njet_emb = count_n_objects(emb_df, "Jet_eta_")
-njet_data = count_n_objects(data_df, "Jet_eta_")
-max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
-nmu_emb = count_n_objects(emb_df, "eta_")
-nmu_data = count_n_objects(data_df, "eta_")
-max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+    nmu_emb = count_n_objects(emb_df, "eta_")
+    nmu_data = count_n_objects(data_df, "eta_")
+    max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
 
-ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"n_jet_raw.png"))
-plt.close()
+    njet_delta = njet_data - njet_emb
+    nmu_delta = nmu_data - nmu_emb
+    max_delta = max([np.amax(njet_delta), np.amax(nmu_delta)])
+    min_delta = min([np.amin(njet_delta), np.amin(nmu_delta)])
 
-ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"n_mu_raw.png"))
-plt.close()
+    ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_jet_00_raw.png"))
+    plt.close()
+
+    ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_mu_00_raw.png"))
+    plt.close()
+
+    ax = nq_comparison({"Mu":nmu_delta, "Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_delta_00_raw.png"))
+    plt.close()
 
 
 ########################################################################################################################################################################
@@ -118,6 +130,30 @@ data_df = remove_muon_jets(data_df, dr1, dr_cut)
 dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
+
+# Creating plots comparing jet / muon object
+if create_match_plots:
+    njet_emb = count_n_objects(emb_df, "Jet_eta_")
+    njet_data = count_n_objects(data_df, "Jet_eta_")
+    max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
+
+    njet_delta = njet_data - njet_emb
+    max_delta = np.amax(njet_delta)
+    min_delta = np.amin(njet_delta)
+
+    ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_jet_01_no_mu.png"))
+    plt.close()
+
+    ax = nq_comparison({"Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_delta_01.png"))
+    plt.close()
+
+########################################################################################################################################################################
+# Applying quality cuts
+########################################################################################################################################################################
 
 data_df = only_global_muons(data_df)
 emb_df = only_global_muons(emb_df)
@@ -137,6 +173,42 @@ data_df = compactify_objects(data_df)
 emb_df = compactify_objects(emb_df)
 
 print(f"Quality cuts:       emb: {len(emb_df)}  data: {len(data_df)}")
+
+
+# Creating plots comparing jet / muon object
+if create_match_plots:
+    njet_emb = count_n_objects(emb_df, "Jet_eta_")
+    njet_data = count_n_objects(data_df, "Jet_eta_")
+    max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
+
+    nmu_emb = count_n_objects(emb_df, "eta_")
+    nmu_data = count_n_objects(data_df, "eta_")
+    max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+
+    njet_delta = njet_data - njet_emb
+    nmu_delta = nmu_data - nmu_emb
+    max_delta = max([np.amax(njet_delta), np.amax(nmu_delta)])
+    min_delta = min([np.amin(njet_delta), np.amin(nmu_delta)])
+
+    ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_jet_02_post_filter.png"))
+    plt.close()
+
+    ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_mu_02_post_filter.png"))
+    plt.close()
+
+    ax = nq_comparison({"Mu":nmu_delta, "Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"n_delta_02.png"))
+    plt.close()
+
+
+########################################################################################################################################################################
+# Continuing filtering
+########################################################################################################################################################################
 
 data_df = require_min_n(data_df, "eta_", 2)
 emb_df = require_min_n(emb_df, "eta_", 2)
@@ -163,59 +235,38 @@ verify_events(data_df, emb_df)
 print("Data ok")
 
 
-########################################################################################################################################################################
 # Creating plots indicating performance of muon removal
-########################################################################################################################################################################
+if create_match_plots:
+    dr1 = dr1.flatten()
+    dr2 = dr2.flatten()
 
-njet_emb = count_n_objects(emb_df, "Jet_eta_")
-njet_data = count_n_objects(data_df, "Jet_eta_")
-max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
-nmu_emb = count_n_objects(emb_df, "eta_")
-nmu_data = count_n_objects(data_df, "eta_")
-max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
-
-ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"n_jet_post_filter.png"))
-plt.close()
-
-ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"n_mu_post_filter.png"))
-plt.close()
-
-dr1 = dr1.flatten()
-dr2 = dr2.flatten()
-
-ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, uncleaned}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"mujet_dr_uncleaned.png"))
-plt.close()
+    ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, uncleaned}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"mujet_dr_uncleaned.png"))
+    plt.close()
 
 
-dr1 = calculate_dr(data_df, "filter", filter=None).flatten()
-dr2 = calculate_dr(emb_df, "filter", filter=None).flatten()
+    dr1 = calculate_dr(data_df, "filter", filter=None).flatten()
+    dr2 = calculate_dr(emb_df, "filter", filter=None).flatten()
 
-ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, cleaned}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"mujet_dr_cleaned.png"))
-plt.close()
+    ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, cleaned}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"mujet_dr_cleaned.png"))
+    plt.close()
 
 
-print("Created muon jet removal plots")
+    print("Created muon jet removal plots")
+
 
 
 ########################################################################################################################################################################
-# copying the columns with info about muons used for embedding to original dataset so that they can be treated equally
-######################################################################################################################################################################## 
+# Applying muon matching
+########################################################################################################################################################################
+
 selection_q_converted = [element["target"] for element in selection_q]
 data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
 
 print("Copied to data:", selection_q_converted)
-
-########################################################################################################################################################################
-# Applying matching
-########################################################################################################################################################################
 
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
@@ -226,38 +277,36 @@ emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_d
 print("Genmatching applied")
 
 
-########################################################################################################################################################################
 # Creating plots indicating performance of matching
-########################################################################################################################################################################
+if create_match_plots:
+    dphi_1 = subtract_columns(emb_df["phi_1"], data_df["phi_1"], "phi_1")
+    deta_1 = subtract_columns(emb_df["eta_1"], data_df["eta_1"], "eta_1")
+    dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
+    dphi_2 = subtract_columns(emb_df["phi_2"], data_df["phi_2"], "phi_2")
+    deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
+    dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
-dphi_1 = subtract_columns(emb_df["phi_1"], data_df["phi_1"], "phi_1")
-deta_1 = subtract_columns(emb_df["eta_1"], data_df["eta_1"], "eta_1")
-dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
-dphi_2 = subtract_columns(emb_df["phi_2"], data_df["phi_2"], "phi_2")
-deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
-dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
+    #dr between muon1|2 data and muon1|2 embedding
 
-#dr between muon1|2 data and muon1|2 embedding
+    ax = nq_comparison({"Leading µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
+    plt.close()
 
-ax = nq_comparison({"Leading µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
-plt.close()
+    #dr between l|m muon data and l|m muon embedding
+    ax = nq_comparison({"Leading µ":dr_matched[:,0], "Trailing µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
+    plt.close()
 
-#dr between l|m muon data and l|m muon embedding
-ax = nq_comparison({"Leading µ":dr_matched[:,0], "Trailing µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
-plt.close()
-
-#frequency of muon id to be used as l|m muon
-ax = match_plot(muon_id_matched, "ID of closest µ")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"muon_id_matched.png"))
-plt.close()
+    #frequency of muon id to be used as l|m muon
+    ax = match_plot(muon_id_matched, "ID of closest µ")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"muon_id_matched.png"))
+    plt.close()
 
 
-print("Created muon matching plots")
+    print("Created muon matching plots")
 
 ########################################################################################################################################################################
 # Adding mvis and ptvis
@@ -281,38 +330,37 @@ emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), em
 
 print("Jets matched")
 
-########################################################################################################################################################################
+
 # Creating plots indicating performance of jet matching
-########################################################################################################################################################################
+if create_match_plots:
+    dphi_1 = subtract_columns(emb_df_matched["Jet_phi_1"], data_df["LJ_phi"], "phi_1")
+    deta_1 = subtract_columns(emb_df_matched["Jet_eta_1"], data_df["LJ_eta"], "eta_1")
+    dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
+    dphi_2 = subtract_columns(emb_df_matched["Jet_phi_2"], data_df["TJ_phi"], "phi_2")
+    deta_2 = subtract_columns(emb_df_matched["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
+    dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
-dphi_1 = subtract_columns(emb_df_matched["Jet_phi_1"], data_df["LJ_phi"], "phi_1")
-deta_1 = subtract_columns(emb_df_matched["Jet_eta_1"], data_df["LJ_eta"], "eta_1")
-dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
-dphi_2 = subtract_columns(emb_df_matched["Jet_phi_2"], data_df["TJ_phi"], "phi_2")
-deta_2 = subtract_columns(emb_df_matched["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
-dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
+    #dr between muon1|2 data and muon1|2 embedding
+    ax = nq_comparison({"Leadin jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
+    plt.close()
 
-#dr between muon1|2 data and muon1|2 embedding
-ax = nq_comparison({"Leadin jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
-plt.close()
-
-#dr between l|m muon data and l|m muon embedding
-ax = nq_comparison({"Leadin jet":jet_dr_matched[:,0], "Trailing jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
-plt.close()
-
-
-#frequency of muon id to be used as l|m muon
-ax = match_plot(jet_id_matched, "ID of closest jet")
-ax.set_yscale("log")
-plt.savefig(os.path.join(match_plot_path, f"jet_id_matched.png"))
-plt.close()
+    #dr between l|m muon data and l|m muon embedding
+    ax = nq_comparison({"Leadin jet":jet_dr_matched[:,0], "Trailing jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
+    plt.close()
 
 
-print("Created jet matching plots")
+    #frequency of muon id to be used as l|m muon
+    ax = match_plot(jet_id_matched, "ID of closest jet")
+    ax.set_yscale("log")
+    plt.savefig(os.path.join(match_plot_path, f"jet_id_matched.png"))
+    plt.close()
+
+
+    print("Created jet matching plots")
 
 
 ########################################################################################################################################################################
