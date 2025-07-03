@@ -160,7 +160,7 @@ def assert_object_validity(df):
     for prefix in ["", "Jet_"]:#applying function on jet and muon quantities
         n_muon_col = get_n_occurence(df, f"{prefix}eta")#number of objects
         
-        n_muon = np.zeros(len(df))
+        # n_muon = np.zeros(len(df))
 
         for num in range(1, n_muon_col+1):
             #finding nans in objects
@@ -180,7 +180,7 @@ def assert_object_validity(df):
             df.loc[mask, f"{prefix}pt_{num}"] = np.nan
             df.loc[mask, f"{prefix}m_{num}"] = np.nan
 
-            n_muon += np.where(mask, 0, 1)#counting how many muons are remaining
+            # n_muon += np.where(mask, 0, 1)#counting how many muons are remaining
 
     return df
 
@@ -261,7 +261,7 @@ def compactify_objects(df):
                     df = df.drop(columns=[col])#removing column if not
             q_length.append(q_l)#adding length array
         
-        #now all columns with number n must have the same length (q1_1, q2_1...)
+        #now all columns with number n must have the same length (eta_1, phi_1...) (assuming assert_object_validity has been called before)
         for num in range(len(q_length[0])):#number of particles
             for mun in range(len(q_length)-1):#number of quantities
                 assert q_length[mun][num] == q_length[mun+1][num], "Compactification failed"

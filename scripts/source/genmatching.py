@@ -30,7 +30,7 @@ def calculate_dr(df, mode, filter=None):
         n_target = 2
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "filter":
-        n_comp = get_n_occurence(df, "eta")
+        n_comp = 2
         n_target = get_n_occurence(df, "Jet_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     else:
@@ -64,17 +64,22 @@ def calculate_dr(df, mode, filter=None):
                 master_phi = "TJ_phi"
                 master_pt = "TJ_pt"
         elif mode=="filter":
-            comp_phi = "phi"
-            comp_eta = "eta"
-            comp_pt = "pt"
-            master_eta = "Jet_eta"#comparing the first jet
+            master_eta = "Jet_eta"
             master_phi = "Jet_phi"
             master_pt = "Jet_pt"
+            if n == 1:
+                comp_phi = "LM_phi"
+                comp_eta = "LM_eta"
+                comp_pt = "LM_pt"
+            elif n == 2:
+                comp_phi = "TM_phi"
+                comp_eta = "TM_eta"
+                comp_pt = "TM_pt"
         
         for n_m in range(1, n_comp+1):
             if mode == "filter":
-                eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}_{n_m}"], "eta_")
-                phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df[f"{comp_phi}_{n_m}"], "phi_")
+                eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}"], "eta_")
+                phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df[f"{comp_phi}"], "phi_")
             else:
                 eta_diff = subtract_columns(df[master_eta], df[f"{comp_eta}_{n_m}"], "eta_")
                 phi_diff = subtract_columns(df[master_phi], df[f"{comp_phi}_{n_m}"], "phi_")
@@ -183,8 +188,8 @@ def apply_genmatching(dr_arr, df, mode):
             muon_id = muon1_id
             #thus removing the id for avoiding reselection
 
-            dr1 = distances[0,muon_id]
-            dr2 = distances[1,muon_id]
+            dr1 = distances[0,muon_id]#distances to the leading muon
+            dr2 = distances[1,muon_id]#distances to the subleading muon
             
             distances = remove_emb_mu_from_dist(distances, muon_id)
             #if muon fits best to first candidate
