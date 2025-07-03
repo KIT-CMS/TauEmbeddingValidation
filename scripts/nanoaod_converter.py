@@ -9,7 +9,7 @@ import pathlib
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n, require_same_n
 from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching,get_n_occurence, set_working_dir, count_n_objects
-from source.plotting import match_plot, nq_comparison
+from source.plotting import match_plot, control_plot, nq_comparison
 
 from source.importer import quality_cut, assert_object_validity, only_global_muons, compactify_objects
 
@@ -103,13 +103,14 @@ if create_match_plots:
     max_delta = max([np.amax(njet_delta), np.amax(nmu_delta)])
     min_delta = min([np.amin(njet_delta), np.amin(nmu_delta)])
 
-    ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
-    ax.set_yscale("log")
+
+    ax = control_plot(njet_data, njet_emb, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", None)
+    ax[0].set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"n_jet_00_raw.png"))
     plt.close()
 
-    ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
-    ax.set_yscale("log")
+    ax = control_plot(nmu_data, nmu_emb, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", None)
+    ax[0].set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"n_mu_00_raw.png"))
     plt.close()
 
@@ -118,6 +119,7 @@ if create_match_plots:
     plt.savefig(os.path.join(match_plot_path, f"n_delta_00_raw.png"))
     plt.close()
 
+    # print("Corr raw: ", np.corrcoef(njet_delta, nmu_delta)[0,1])
 
 ########################################################################################################################################################################
 # Applying quality filters
@@ -132,24 +134,24 @@ emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
 
 # Creating plots comparing jet / muon object
-if create_match_plots:
-    njet_emb = count_n_objects(emb_df, "Jet_eta_")
-    njet_data = count_n_objects(data_df, "Jet_eta_")
-    max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
+# if create_match_plots:
+#     njet_emb = count_n_objects(emb_df, "Jet_eta_")
+#     njet_data = count_n_objects(data_df, "Jet_eta_")
+#     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
-    njet_delta = njet_data - njet_emb
-    max_delta = np.amax(njet_delta)
-    min_delta = np.amin(njet_delta)
+#     njet_delta = njet_data - njet_emb
+#     max_delta = np.amax(njet_delta)
+#     min_delta = np.amin(njet_delta)
 
-    ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
-    ax.set_yscale("log")
-    plt.savefig(os.path.join(match_plot_path, f"n_jet_01_no_mu.png"))
-    plt.close()
+#     ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
+#     ax.set_yscale("log")
+#     plt.savefig(os.path.join(match_plot_path, f"n_jet_01_no_mu.png"))
+#     plt.close()
 
-    ax = nq_comparison({"Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
-    ax.set_yscale("log")
-    plt.savefig(os.path.join(match_plot_path, f"n_delta_01.png"))
-    plt.close()
+#     ax = nq_comparison({"Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
+#     ax.set_yscale("log")
+#     plt.savefig(os.path.join(match_plot_path, f"n_delta_01.png"))
+#     plt.close()
 
 ########################################################################################################################################################################
 # Applying quality cuts
@@ -190,13 +192,15 @@ if create_match_plots:
     max_delta = max([np.amax(njet_delta), np.amax(nmu_delta)])
     min_delta = min([np.amin(njet_delta), np.amin(nmu_delta)])
 
-    ax = nq_comparison({"Emb":njet_emb}, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", data=njet_data)
-    ax.set_yscale("log")
+    
+    ax = control_plot(njet_data, njet_emb, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", None)
+    ax[0].set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"n_jet_02_post_filter.png"))
     plt.close()
 
-    ax = nq_comparison({"Emb":nmu_emb}, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", data=nmu_data)
-    ax.set_yscale("log")
+    
+    ax = control_plot(nmu_data, nmu_emb, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", None)
+    ax[0].set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"n_mu_02_post_filter.png"))
     plt.close()
 
@@ -257,6 +261,7 @@ if create_match_plots:
 
     print("Created muon jet removal plots")
 
+    # print("Corr filtered: ", np.corrcoef(njet_delta, nmu_delta)[0,1])
 
 
 ########################################################################################################################################################################
