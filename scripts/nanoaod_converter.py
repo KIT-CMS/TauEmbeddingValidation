@@ -147,6 +147,8 @@ emb_df = quality_cut(emb_df, jet_filters, "jet")
 data_df = quality_cut(data_df, muon_filters, "muon")
 emb_df = quality_cut(emb_df, muon_filters, "muon")
 
+data_df = compactify_objects(data_df)
+emb_df = compactify_objects(emb_df)
 
 data_df = compactify_objects(data_df)
 emb_df = compactify_objects(emb_df)
@@ -281,7 +283,7 @@ if create_plots:
     dr1 = dr1.flatten()
     dr2 = dr2.flatten()
 
-    ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet, uncleaned}$")
+    ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet}$")
     ax.set_yscale("log")
     ymin, ymax = ax.get_ylim()
     ax.vlines(dr_cut, 0, ymax, colors="black", linestyles="dashed")

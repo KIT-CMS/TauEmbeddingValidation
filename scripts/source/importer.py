@@ -8,6 +8,10 @@ import shutil
 
 from source.helper import get_n_occurence, col_is_expanded
 
+jet_basenames = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_m"]
+
+muon_basenames = ["eta", "phi", "pt", "m", "MuonIsTight", "MuonIsGlobal"]
+
 def nanoaod_to_dataframe(files, quantities):
     #imports all files in files and concatenates them
     master_df = pd.DataFrame()
@@ -131,12 +135,13 @@ def initialize_dir(base_path: str, subfolders: list[str]=None):
 def quality_cut(df, filter_dict, mode):
     # this function applies a list of filters to the dataframe and removes cells (not rows!!) where the requirements are not being met
     # thereby the muon number and jet number of each event can be reduced 
-    # note that only the given column is being set to nan and in another step the rest of the corresponding quantities are being removed
 
     if mode == "jet":
-        basenames = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_m"]
+        basenames = jet_basenames
+        n_objects = get_n_occurence(df, "Jet_eta_")
     elif mode == "muon":
-        basenames = ["eta", "phi", "pt", "m", "MuonIsTight", "MuonIsGlobal"]
+        basenames = muon_basenames
+        n_objects = get_n_occurence(df, "eta_")
     else: 
         raise ValueError("Invalid mode selected")
     
@@ -144,9 +149,7 @@ def quality_cut(df, filter_dict, mode):
         col = f["col"]#column name the filter is being applied on 
         min_val = f["min"]
         max_val = f["max"]
-        exact_val = f["exact"]
         
-        n_objects = get_n_occurence(df, col)
     
         for n in range(1, n_objects+1):
             col_temp = f"{col}_{n}"
@@ -172,31 +175,25 @@ def quality_cut(df, filter_dict, mode):
 def assert_object_validity(df):
     # this function ensures that muon and jet quantities do not contain any nans. this means that if there is a nan in e.g. eta of muon3, the whole muon is 
     # removed. same for jets
+    # this function makes sure that no other quantitz of a muon is not-nan where another quantity of the same muon is nan
 
-    for prefix in ["", "Jet_"]:#applying function on jet and muon quantities
-        n_muon_col = get_n_occurence(df, f"{prefix}eta")#number of objects
-        
-        # n_muon = np.zeros(len(df))
+    for mode in ["muon", "jet"]:#applying function on jet and muon quantities
 
-        for num in range(1, n_muon_col+1):
-            #finding nans in objects
-            iso_mask = df[f"{prefix}phi_{num}"].isna()
-            eta_mask = df[f"{prefix}eta_{num}"].isna()
-            pt_mask = df[f"{prefix}pt_{num}"].isna()
-            m_mask = df[f"{prefix}m_{num}"].isna()
+        if mode == "muon":
+            basenames = muon_basenames 
+            n_obj = get_n_occurence(df, "eta_")#number of objects
+        else:
+            basenames = jet_basenames
+            n_obj = get_n_occurence(df, "Jet_eta_")#number of objects
 
-            #combination with logical or selects combines information of all masks
-            mask = np.logical_or(iso_mask, eta_mask)
-            mask = np.logical_or(mask, pt_mask)
-            mask = np.logical_or(mask, m_mask)
+        for basename in basenames:        
+            for num in range(1, n_obj+1):
 
-            #setting all quantities to nan of incomplete captured objects
-            df.loc[mask, f"{prefix}phi_{num}"] = np.nan
-            df.loc[mask, f"{prefix}eta_{num}"] = np.nan
-            df.loc[mask, f"{prefix}pt_{num}"] = np.nan
-            df.loc[mask, f"{prefix}m_{num}"] = np.nan
+                mask = df[f"{basename}_{num}"].isna()# finding all nans of a quantity
 
-            # n_muon += np.where(mask, 0, 1)#counting how many muons are remaining
+                #setting all quantities to nan of incomplete captured objects
+                for basename2 in basenames:
+                    df.loc[mask, f"{basename2}_{num}"] = np.nan# this probablz affects 0 events
 
     return df
 
@@ -233,8 +230,14 @@ def compactify_objects(df):
     # at the end empty columns are deleted
 
     # repeating for jets and muons (prefix is the difference between a muon quantity such as pt and a jet quantity "Jet_pt" )
-    for prefix in ["", "Jet_"]:
-        n = get_n_occurence(df, f"{prefix}eta")#number of objects
+    for mode in ["muon", "jet"]:
+        if mode == "muon":
+            basenames = muon_basenames
+            n = get_n_occurence(df, "eta_")#number of objects
+        else:
+            basenames = jet_basenames
+            n = get_n_occurence(df, "Jet_eta_")#number of objects
+
         #this function takes all columns of a quantity such as pt as input and returns it with nans at the end: [1,2,nan,nan,3] -> [1,2,3,nan,nan]
         def shift_left(row):
             non_nans = row[~np.isnan(row)]
@@ -242,11 +245,12 @@ def compactify_objects(df):
 
         q_length = []#array for applying a short consistency check
 
-        for q in ["pt", "eta", "phi", "m"]:
+        for q in basenames:
 
             q_l = []#will contain the lengths of the single quantitiy columns (q_1, q_2...)
             
-            q_cols = [f'{prefix}{q}_{i}' for i in range(1, n+1)]#list of all relevant columns of the quantity
+            q_cols = [f'{q}_{i}' for i in range(1, n+1)]#list of all relevant columns of the quantity
+            
             subset = df[q_cols]#
             q_array = subset.values #2d array of the values columns of the dataframe belonging to a certain quantity
 
