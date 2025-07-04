@@ -11,7 +11,7 @@ from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching,get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
 
-from source.importer import quality_cut, assert_object_validity, only_global_muons, compactify_objects
+from source.importer import quality_cut, assert_object_validity, compactify_objects
 
 ########################################################################################################################################################################
 # paths for input and output 
@@ -26,7 +26,7 @@ output_path = "./data/converted"
 
 match_plot_path = "./output/match_plots"
 
-create_match_plots = True
+create_plots = True
 
 set_working_dir()
 
@@ -51,7 +51,8 @@ data_quantities = [
     {"key":"run",               "target":"run",             "expand":False},
     {"key":"luminosityBlock",   "target":"lumi",            "expand":False},
     {"key":"event",             "target":"event",           "expand":False},
-    {"key":"Muon_isGlobal",     "target":"MuonIsGlobal",    "expand":True}
+    {"key":"Muon_isGlobal",     "target":"MuonIsGlobal",    "expand":True},
+    {"key":"Muon_tightId",      "target":"MuonIsTight",     "expand":True}
 ]
 
 selection_q = [
@@ -85,12 +86,11 @@ emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
-print(f"Length dataset:\t {len(emb_df)} events")
+print(f"Data loaded\n\tLength dataset:\t {len(emb_df)} events")
 
-print("Data loaded")
 
 # Creating plots comparing jet / muon object
-if create_match_plots:
+if create_plots:
     njet_emb = count_n_objects(emb_df, "Jet_eta_")
     njet_data = count_n_objects(data_df, "Jet_eta_")
     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
@@ -107,11 +107,17 @@ if create_match_plots:
 
     ax = control_plot(njet_data, njet_emb, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", None)
     ax[0].set_yscale("log")
+    # ymin, ymax = ax[0].get_ylim()
+    # ax[0].vlines([np.mean(nmu_data), np.mean(nmu_emb)], [0, 0], [ymax, ymax], colors="black", linestyles="dashed")
+    # ax[1].vlines([np.mean(nmu_data), np.mean(nmu_emb)], [0, 0], [ymax, ymax], colors="black", linestyles="dashed")
     plt.savefig(os.path.join(match_plot_path, f"n_jet_00_raw.png"))
     plt.close()
 
     ax = control_plot(nmu_data, nmu_emb, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", None)
     ax[0].set_yscale("log")
+    # ymin, ymax = ax[0].get_ylim()
+    # ax[0].vlines([np.mean(nmu_data), np.mean(nmu_emb)], [0, 0], [ymax, ymax], colors="black", linestyles="dashed")
+    # ax[1].vlines([np.mean(nmu_data), np.mean(nmu_emb)], [0, 0], [ymax, ymax], colors="black", linestyles="dashed")
     plt.savefig(os.path.join(match_plot_path, f"n_mu_00_raw.png"))
     plt.close()
 
@@ -125,34 +131,44 @@ if create_match_plots:
 # Applying quality cuts on muons and jets
 ########################################################################################################################################################################
 
-data_df = only_global_muons(data_df)
-emb_df = only_global_muons(emb_df)
 
-filter_dict = [
-    {"col":"pt",  "min":10,  "max":None},
+jet_filters = [
     {"col":"Jet_pt",  "min":25,  "max":None}
 ]
+muon_filters = [
+    {"col":"pt",  "min":8,  "max":None},
+    {"col":"MuonIsGlobal",  "min":0.5,  "max":None},
+    #{"col":"MuonIsTight",  "min":None,  "max":None}
+]
 
-data_df = quality_cut(data_df, data_quantities, filter_dict)
-emb_df = quality_cut(emb_df, data_quantities, filter_dict)
+data_df = quality_cut(data_df, jet_filters, "jet")
+emb_df = quality_cut(emb_df, jet_filters, "jet")
 
-data_df = assert_object_validity(data_df)
-emb_df = assert_object_validity(emb_df)
+data_df = quality_cut(data_df, muon_filters, "muon")
+emb_df = quality_cut(emb_df, muon_filters, "muon")
+
 
 data_df = compactify_objects(data_df)
 emb_df = compactify_objects(emb_df)
 
+data_df, emb_df = create_concordant_subsets(data_df, emb_df)
+
+verify_events(data_df, emb_df)
+
+print(f"Quality cuts applied\n\tLength dataset:\t {len(emb_df)} events")
+
+
+data_df = require_min_n(data_df, "eta_", 2)
+emb_df = require_min_n(emb_df, "eta_", 2)
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 verify_events(data_df, emb_df)
 
-print(f"Length dataset:\t {len(emb_df)} events")
-
-print("Jet & muon cuts applied")
+print(f"Removed events with less than 2 muons\n\tLength dataset:\t {len(emb_df)} events")
 
 
 # Creating plots comparing jet / muon object
-if create_match_plots:
+if create_plots:
     njet_emb = count_n_objects(emb_df, "Jet_eta_")
     njet_data = count_n_objects(data_df, "Jet_eta_")
     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
@@ -188,15 +204,6 @@ if create_match_plots:
 # Applying muon matching
 ########################################################################################################################################################################
 
-data_df = require_min_n(data_df, "eta_", 2)
-emb_df = require_min_n(emb_df, "eta_", 2)
-
-data_df, emb_df = create_concordant_subsets(data_df, emb_df)
-verify_events(data_df, emb_df)
-
-print(f"Length dataset:\t {len(emb_df)} events")
-
-print("Removed events with less than 2 muons")
 
 selection_q_converted = [element["target"] for element in selection_q]
 data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
@@ -210,7 +217,7 @@ print("Genmatching applied")
 
 
 # Creating plots indicating performance of matching
-if create_match_plots:
+if create_plots:
     dphi_1 = subtract_columns(emb_df["phi_1"], data_df["phi_1"], "phi_1")
     deta_1 = subtract_columns(emb_df["eta_1"], data_df["eta_1"], "eta_1")
     dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
@@ -269,7 +276,7 @@ emb_df = compactify_objects(emb_df)
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
-if create_match_plots:
+if create_plots:
     # Creating plots indicating performance of muon removal
     dr1 = dr1.flatten()
     dr2 = dr2.flatten()
@@ -331,7 +338,7 @@ print("Jets matched")
 
 
 # Creating plots indicating performance of jet matching
-if create_match_plots:
+if create_plots:
     dphi_1 = subtract_columns(emb_df_matched["Jet_phi_1"], data_df["LJ_phi"], "phi_1")
     deta_1 = subtract_columns(emb_df_matched["Jet_eta_1"], data_df["LJ_eta"], "eta_1")
     dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))

@@ -128,30 +128,46 @@ def initialize_dir(base_path: str, subfolders: list[str]=None):
             (base_dir / sub).mkdir(parents=True, exist_ok=True)
 
 
-def quality_cut(df, quantities, filter_dict):
+def quality_cut(df, filter_dict, mode):
     # this function applies a list of filters to the dataframe and removes cells (not rows!!) where the requirements are not being met
     # thereby the muon number and jet number of each event can be reduced 
     # note that only the given column is being set to nan and in another step the rest of the corresponding quantities are being removed
 
+    if mode == "jet":
+        basenames = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_m"]
+    elif mode == "muon":
+        basenames = ["eta", "phi", "pt", "m", "MuonIsTight", "MuonIsGlobal"]
+    else: 
+        raise ValueError("Invalid mode selected")
+    
     for f in filter_dict:
-        basename = f["col"]#column name the filter is being applied on 
+        col = f["col"]#column name the filter is being applied on 
         min_val = f["min"]
         max_val = f["max"]
-        col_expanded = col_is_expanded(quantities, basename)
-
-        # if column is expanded, there are multiple columns to correct
-        if col_expanded:
-            for col in df.columns:
-                if col.startswith(basename):
-                    df.loc[df[col] < min_val, col] = np.nan#sets those cells to nan where boundaries are missed
-                    df.loc[df[col] > max_val, col] = np.nan
-        else:
-            df.loc[df[basename] < min_val, col] = np.nan#same as above with exact column names
-            df.loc[df[basename] > max_val, col] = np.nan
+        exact_val = f["exact"]
+        
+        n_objects = get_n_occurence(df, col)
     
+        for n in range(1, n_objects+1):
+            col_temp = f"{col}_{n}"
+
+            if type(min_val) != type(None):
+                mask = df[col_temp] < min_val
+                
+                for basename in basenames:
+                    df.loc[mask, f"{basename}_{n}"] = np.nan
+
+            if type(max_val) != type(None):
+                mask =  df[col_temp] > max_val
+
+                for basename in basenames:
+                    df.loc[mask, f"{basename}_{n}"] = np.nan
+
+
     return df
 
-    
+
+
 
 def assert_object_validity(df):
     # this function ensures that muon and jet quantities do not contain any nans. this means that if there is a nan in e.g. eta of muon3, the whole muon is 
@@ -209,20 +225,6 @@ def require_same_n(df1, df2, col):
 
     return df1, df2
 
-
-def only_global_muons(df):
-    # checks the global flag for each available muon and sets its quantities to zero if it is not global
-
-    n_muon = get_n_occurence(df, "MuonIsGlobal")
-
-    for num in range(1, n_muon+1):
-        mask = df[f"MuonIsGlobal_{num}"] != 1
-        df.loc[mask, f"pt_{num}"] = np.nan
-        df.loc[mask, f"eta_{num}"] = np.nan
-        df.loc[mask, f"phi_{num}"] = np.nan
-        df.loc[mask, f"m_{num}"] = np.nan
-
-    return df
 
 
 
