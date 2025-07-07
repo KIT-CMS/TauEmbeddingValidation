@@ -11,7 +11,7 @@ from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching,get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
 
-from source.importer import quality_cut, assert_object_validity, compactify_objects
+from source.importer import quality_cut, assert_object_validity, compactify_objects, transform_ids
 
 ########################################################################################################################################################################
 # paths for input and output 
@@ -52,7 +52,9 @@ data_quantities = [
     {"key":"luminosityBlock",   "target":"lumi",            "expand":False},
     {"key":"event",             "target":"event",           "expand":False},
     {"key":"Muon_isGlobal",     "target":"MuonIsGlobal",    "expand":True},
-    {"key":"Muon_tightId",      "target":"MuonIsTight",     "expand":True}
+    {"key":"Muon_tightId",      "target":"MuonIsTight",     "expand":True},
+    {"key":"Muon_mediumId",     "target":"MuonIsMedium",    "expand":True},
+    {"key":"Muon_looseId",      "target":"MuonIsLoose",     "expand":True},
 ]
 
 selection_q = [
@@ -87,7 +89,6 @@ emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
 print(f"Data loaded\n\tLength dataset:\t {len(emb_df)} events")
-
 
 # Creating plots comparing jet / muon object
 if create_plots:
@@ -131,6 +132,8 @@ if create_plots:
 # Applying quality cuts on muons and jets
 ########################################################################################################################################################################
 
+# data_df = transform_ids(data_df)
+# emb_df = transform_ids(emb_df)
 
 jet_filters = [
     {"col":"Jet_pt",  "min":25,  "max":None}
@@ -138,7 +141,8 @@ jet_filters = [
 muon_filters = [
     {"col":"pt",  "min":8,  "max":None},
     {"col":"MuonIsGlobal",  "min":0.5,  "max":None},
-    #{"col":"MuonIsTight",  "min":None,  "max":None}
+    {"col":"MuonIsMedium",  "min":0.5,  "max":None}
+    # {"col":"MuonIsLoose",  "min":None,  "max":0.5}
 ]
 
 data_df = quality_cut(data_df, jet_filters, "jet")
@@ -268,10 +272,6 @@ dr1 = calculate_dr(data_df, "filter", filter=None)
 data_df = remove_muon_jets(data_df, dr1, dr_cut)
 dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
-
-
-data_df = assert_object_validity(data_df)
-emb_df = assert_object_validity(emb_df)
 
 data_df = compactify_objects(data_df)
 emb_df = compactify_objects(emb_df)

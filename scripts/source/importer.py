@@ -273,3 +273,47 @@ def compactify_objects(df):
                 assert q_length[mun][num] == q_length[mun+1][num], "Compactification failed"
 
     return df  
+
+
+# def transform_ids(df):
+#     # transforms the ids of the muons so that they are exclusive: a tight muon is then no longer also a medium an loose muon but
+#     # only a tight muon. this is a preparation for the tight muon cut which can otherwise not be applied
+    
+#     loose_cols = [c for c in df.columns if c.startswith("MuonIsLoose")]
+#     medium_cols = [c for c in df.columns if c.startswith("MuonIsMedium")]
+#     tight_cols = [c for c in df.columns if c.startswith("MuonIsTight")]
+
+#     loose_mask = df[loose_cols].to_numpy(copy=True)
+#     medium_mask = df[medium_cols].to_numpy(copy=True)
+#     tight_mask = df[tight_cols].to_numpy(copy=True)
+
+#     target_width = loose_mask.shape[1]
+#     actual_width = medium_mask.shape[1]
+#     if actual_width != target_width:
+#         temp = np.full_like(loose_mask, np.nan)
+#         temp[:, :actual_width] = medium_mask
+#         medium_mask = temp
+#         medium_cols += [f"MuonIsMedium_{n}" for n in range(actual_width+1, target_width+1)]
+    
+#     actual_width = tight_mask.shape[1]
+#     if actual_width != target_width:
+#         temp = np.full_like(loose_mask, np.nan)
+#         temp[:, :actual_width] = tight_mask
+#         tight_mask = temp
+#         tight_cols += [f"MuonIstight_{n}" for n in range(actual_width+1, target_width+1)]
+    
+#     loose_nans = np.isnan(loose_mask)
+#     medium_nans = np.isnan(medium_mask)
+
+#     loose_mask = np.where(loose_mask-medium_mask>0, 1., 0.)
+#     medium_mask = np.where(medium_mask-tight_mask>0, 1., 0.)
+
+#     loose_mask[loose_nans] = np.nan
+#     medium_mask[medium_nans] = np.nan
+
+#     df[loose_cols] = loose_mask
+#     df[medium_cols] = medium_mask
+#     df[tight_cols] = tight_mask
+    
+#     return df
+    
