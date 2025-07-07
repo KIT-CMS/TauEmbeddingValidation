@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 from source.helper import subtract_columns, get_n_occurence
+from source.importer import compactify_objects
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
@@ -307,3 +308,53 @@ def remove_muon_jets(df, dr_arr, cut):
             df.loc[mask, f"Jet_pt_{n_j+1}"] = np.nan
             
     return df
+
+def find_unmatched_objects(dr, emb_df, data_df, mode):
+
+    if mode=="jet_all":
+        n_emb = get_n_occurence(emb_df, "Jet_eta_")
+        n_data = get_n_occurence(data_df, "Jet_eta_")
+        pt_cols_emb = [f"Jet_pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"Jet_pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"Jet_eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"Jet_eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"Jet_phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"Jet_phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["Jet_pt", "Jet_eta", "Jet_phi"]
+    elif mode == "muon_all":
+        n_emb = get_n_occurence(emb_df, "eta_")
+        n_data = get_n_occurence(data_df, "eta_")
+        pt_cols_emb = [f"pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["pt", "eta", "phi"]
+    else:
+        raise ValueError("Invalid mode")
+    
+    matched_mask_emb = np.any(~np.isnan(dr), axis=1)
+    matched_mask_data = np.any(~np.isnan(dr), axis=2)
+
+    not_nan_mask_emb = emb_df[eta_cols_emb].notna()
+    not_nan_mask_data = data_df[eta_cols_data].notna()
+
+    unmatched_mask_emb = np.logical_and(not_nan_mask_emb, ~matched_mask_emb)
+    unmatched_mask_data = np.logical_and(not_nan_mask_data, ~matched_mask_data)
+    all_mask = np.full(len(emb_df), 1)
+
+    data_unmatched = data_df[pt_cols_data + eta_cols_data + phi_cols_data + ["run", "lumi", "event"]].copy(deep=True)
+    emb_unmatched = emb_df[pt_cols_emb + eta_cols_emb + phi_cols_emb + ["run", "lumi", "event"]].copy(deep=True)
+
+    data_unmatched.loc[all_mask, pt_cols_data] = data_unmatched[pt_cols_data].where(unmatched_mask_data, np.nan)
+    emb_unmatched.loc[all_mask, pt_cols_emb] = emb_unmatched[pt_cols_emb].where(unmatched_mask_emb, np.nan)
+    data_unmatched.loc[all_mask, eta_cols_data] = data_unmatched[eta_cols_data].where(unmatched_mask_data, np.nan)
+    emb_unmatched.loc[all_mask, eta_cols_emb] = emb_unmatched[eta_cols_emb].where(unmatched_mask_emb, np.nan)
+    data_unmatched.loc[all_mask, phi_cols_data] = data_unmatched[phi_cols_data].where(unmatched_mask_data, np.nan)
+    emb_unmatched.loc[all_mask, phi_cols_emb] = emb_unmatched[phi_cols_emb].where(unmatched_mask_emb, np.nan)
+
+    data_unmatched = compactify_objects(data_unmatched, basenames)
+    emb_unmatched = compactify_objects(emb_unmatched, basenames)
+
+    return data_unmatched, emb_unmatched
