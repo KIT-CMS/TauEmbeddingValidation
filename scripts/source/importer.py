@@ -225,18 +225,23 @@ def require_same_n(df1, df2, col):
 
 
 
-def compactify_objects(df):
+def compactify_objects(df, custom_basenames=None):
     # this function ensures that there a no empty objects in the dataset. if muon3 is empty but muon5 isnt, the quantities from muon5 are moved to the left.
     # at the end empty columns are deleted
 
     # repeating for jets and muons (prefix is the difference between a muon quantity such as pt and a jet quantity "Jet_pt" )
     for mode in ["muon", "jet"]:
         if mode == "muon":
+            if type(custom_basenames) != type(None):
+                basenames = custom_basenames
             basenames = muon_basenames
             n = get_n_occurence(df, "eta_")#number of objects
         else:
+            if type(custom_basenames) != type(None):
+                break
             basenames = jet_basenames
             n = get_n_occurence(df, "Jet_eta_")#number of objects
+            
 
         #this function takes all columns of a quantity such as pt as input and returns it with nans at the end: [1,2,nan,nan,3] -> [1,2,3,nan,nan]
         def shift_left(row):

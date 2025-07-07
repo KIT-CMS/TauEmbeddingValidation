@@ -17,7 +17,7 @@ def get_filter_list():
 
 
 #following code is for genmatching
-def calculate_dr(df, mode, filter=None):
+def calculate_dr(df, mode, filter=None, df2=None):
     #this function returns the dr value for all particle combination from embedding
     #the first "n_data" particles of data are compare to the first "n_emb" particles of the embeddign dataset
 
@@ -32,6 +32,14 @@ def calculate_dr(df, mode, filter=None):
     elif mode == "filter":
         n_comp = 2
         n_target = get_n_occurence(df, "Jet_eta")
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "muon_all":
+        n_comp = get_n_occurence(df, "eta")
+        n_target = get_n_occurence(df2, "eta")
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "jet_all":
+        n_comp = get_n_occurence(df, "Jet_eta")
+        n_target = get_n_occurence(df2, "Jet_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     else:
         raise ValueError("Invalid mode selected")
@@ -75,11 +83,29 @@ def calculate_dr(df, mode, filter=None):
                 comp_phi = "TM_phi"
                 comp_eta = "TM_eta"
                 comp_pt = "TM_pt"
-        
+        # emb auf axis=1, data auf axis=2
+        elif mode == "muon_all":
+            master_eta = "eta"
+            master_phi = "phi"
+            master_pt = "pt"
+            comp_phi = "phi"
+            comp_eta = "eta"
+            comp_pt = "pt"
+        elif mode == "jet_all":
+            master_eta = "Jet_eta"
+            master_phi = "Jet_phi"
+            master_pt = "Jet_pt"
+            comp_phi = "Jet_phi"
+            comp_eta = "Jet_eta"
+            comp_pt = "Jet_pt"
+            
         for n_m in range(1, n_comp+1):
             if mode == "filter":
                 eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}"], "eta_")
                 phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df[f"{comp_phi}"], "phi_")
+            elif mode == "muon_all" or mode == "jet_all":
+                eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df2[f"{comp_eta}_{n_m}"], "eta_")
+                phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df2[f"{comp_phi}_{n_m}"], "phi_")
             else:
                 eta_diff = subtract_columns(df[master_eta], df[f"{comp_eta}_{n_m}"], "eta_")
                 phi_diff = subtract_columns(df[master_phi], df[f"{comp_phi}_{n_m}"], "phi_")
