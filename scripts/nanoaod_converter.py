@@ -8,10 +8,10 @@ import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n
 from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
-from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching,get_n_occurence, set_working_dir, count_n_objects
+from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching, get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
 
-from source.importer import quality_cut, assert_object_validity, compactify_objects, transform_ids
+from source.importer import quality_cut, assert_object_validity, compactify_objects, get_jet_basenames, get_muon_basenames
 
 ########################################################################################################################################################################
 # paths for input and output 
@@ -151,11 +151,11 @@ emb_df = quality_cut(emb_df, jet_filters, "jet")
 data_df = quality_cut(data_df, muon_filters, "muon")
 emb_df = quality_cut(emb_df, muon_filters, "muon")
 
-data_df = compactify_objects(data_df)
-emb_df = compactify_objects(emb_df)
+data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
+data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
 
-data_df = compactify_objects(data_df)
-emb_df = compactify_objects(emb_df)
+emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df, "Jet_eta_"))
+emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
@@ -273,8 +273,11 @@ data_df = remove_muon_jets(data_df, dr1, dr_cut)
 dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
-data_df = compactify_objects(data_df)
-emb_df = compactify_objects(emb_df)
+data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
+data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
+
+emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df, "Jet_eta_"))
+emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 

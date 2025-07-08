@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 from source.helper import subtract_columns, get_n_occurence
-from source.importer import compactify_objects
+from source.importer import compactify_objects, get_jet_basenames, get_muon_basenames
 
 filter_list = [
     {"col":"dr", "min":0, "max":0.01},
@@ -334,27 +334,38 @@ def find_unmatched_objects(dr, emb_df, data_df, mode):
     else:
         raise ValueError("Invalid mode")
     
-    matched_mask_emb = np.any(~np.isnan(dr), axis=1)
-    matched_mask_data = np.any(~np.isnan(dr), axis=2)
 
-    not_nan_mask_emb = emb_df[eta_cols_emb].notna()
-    not_nan_mask_data = data_df[eta_cols_data].notna()
-
-    unmatched_mask_emb = np.logical_and(not_nan_mask_emb, ~matched_mask_emb)
-    unmatched_mask_data = np.logical_and(not_nan_mask_data, ~matched_mask_data)
-    all_mask = np.full(len(emb_df), 1)
+    unmatched_mask_emb = ~np.any(~np.isnan(dr), axis=1)
+    unmatched_mask_data = ~np.any(~np.isnan(dr), axis=2)
 
     data_unmatched = data_df[pt_cols_data + eta_cols_data + phi_cols_data + ["run", "lumi", "event"]].copy(deep=True)
     emb_unmatched = emb_df[pt_cols_emb + eta_cols_emb + phi_cols_emb + ["run", "lumi", "event"]].copy(deep=True)
 
-    data_unmatched.loc[all_mask, pt_cols_data] = data_unmatched[pt_cols_data].where(unmatched_mask_data, np.nan)
-    emb_unmatched.loc[all_mask, pt_cols_emb] = emb_unmatched[pt_cols_emb].where(unmatched_mask_emb, np.nan)
-    data_unmatched.loc[all_mask, eta_cols_data] = data_unmatched[eta_cols_data].where(unmatched_mask_data, np.nan)
-    emb_unmatched.loc[all_mask, eta_cols_emb] = emb_unmatched[eta_cols_emb].where(unmatched_mask_emb, np.nan)
-    data_unmatched.loc[all_mask, phi_cols_data] = data_unmatched[phi_cols_data].where(unmatched_mask_data, np.nan)
-    emb_unmatched.loc[all_mask, phi_cols_emb] = emb_unmatched[phi_cols_emb].where(unmatched_mask_emb, np.nan)
+    data_unmatched.loc[:, pt_cols_data].where(unmatched_mask_data, np.nan, inplace=True)
+    data_unmatched.loc[:, eta_cols_data].where(unmatched_mask_data, np.nan, inplace=True)
+    data_unmatched.loc[:, phi_cols_data].where(unmatched_mask_data, np.nan, inplace=True)
 
-    data_unmatched = compactify_objects(data_unmatched, basenames)
-    emb_unmatched = compactify_objects(emb_unmatched, basenames)
+    emb_unmatched.loc[:, pt_cols_emb].where(unmatched_mask_emb, np.nan, inplace=True)
+    emb_unmatched.loc[:, eta_cols_emb].where(unmatched_mask_emb, np.nan, inplace=True)
+    emb_unmatched.loc[:, phi_cols_emb].where(unmatched_mask_emb, np.nan, inplace=True)
+
+
+    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
+    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
+
+
+
+    # data_unmatched.loc[:, pt_cols_data] = data_unmatched[pt_cols_data].where(unmatched_mask_data, np.nan)
+    # data_unmatched.loc[:, eta_cols_data] = data_unmatched[eta_cols_data].where(unmatched_mask_data, np.nan)
+    # data_unmatched.loc[:, phi_cols_data] = data_unmatched[phi_cols_data].where(unmatched_mask_data, np.nan)
+
+    # emb_unmatched.loc[:, pt_cols_emb] = emb_unmatched[pt_cols_emb].where(unmatched_mask_emb, np.nan)
+    # emb_unmatched.loc[:, eta_cols_emb] = emb_unmatched[eta_cols_emb].where(unmatched_mask_emb, np.nan)
+    # emb_unmatched.loc[:, phi_cols_emb] = emb_unmatched[phi_cols_emb].where(unmatched_mask_emb, np.nan)
+
+
+    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
+    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
+
 
     return data_unmatched, emb_unmatched

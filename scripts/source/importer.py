@@ -12,6 +12,12 @@ jet_basenames = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_m"]
 
 muon_basenames = ["eta", "phi", "pt", "m", "MuonIsTight", "MuonIsGlobal"]
 
+def get_jet_basenames():
+    return jet_basenames
+
+def get_muon_basenames():
+    return muon_basenames
+
 def nanoaod_to_dataframe(files, quantities):
     #imports all files in files and concatenates them
     master_df = pd.DataFrame()
@@ -225,57 +231,43 @@ def require_same_n(df1, df2, col):
 
 
 
-def compactify_objects(df, custom_basenames=None):
+def compactify_objects(df, basenames, n):
     # this function ensures that there a no empty objects in the dataset. if muon3 is empty but muon5 isnt, the quantities from muon5 are moved to the left.
     # at the end empty columns are deleted
 
-    # repeating for jets and muons (prefix is the difference between a muon quantity such as pt and a jet quantity "Jet_pt" )
-    for mode in ["muon", "jet"]:
-        if mode == "muon":
-            if type(custom_basenames) != type(None):
-                basenames = custom_basenames
-            basenames = muon_basenames
-            n = get_n_occurence(df, "eta_")#number of objects
-        else:
-            if type(custom_basenames) != type(None):
-                break
-            basenames = jet_basenames
-            n = get_n_occurence(df, "Jet_eta_")#number of objects
-            
+    #this function takes all columns of a quantity such as pt as input and returns it with nans at the end: [1,2,nan,nan,3] -> [1,2,3,nan,nan]
+    def shift_left(row):
+        non_nans = row[~np.isnan(row)]
+        return np.concatenate([non_nans, [np.nan] * (len(row) - len(non_nans))])
 
-        #this function takes all columns of a quantity such as pt as input and returns it with nans at the end: [1,2,nan,nan,3] -> [1,2,3,nan,nan]
-        def shift_left(row):
-            non_nans = row[~np.isnan(row)]
-            return np.concatenate([non_nans, [np.nan] * (len(row) - len(non_nans))])
+    q_length = []#array for applying a short consistency check
 
-        q_length = []#array for applying a short consistency check
+    for q in basenames:
 
-        for q in basenames:
-
-            q_l = []#will contain the lengths of the single quantitiy columns (q_1, q_2...)
-            
-            q_cols = [f'{q}_{i}' for i in range(1, n+1)]#list of all relevant columns of the quantity
-            
-            subset = df[q_cols]#
-            q_array = subset.values #2d array of the values columns of the dataframe belonging to a certain quantity
-
-            q_array = np.apply_along_axis(shift_left, axis=1, arr=q_array)#shiftig to the left
-
-            #setting the newly ordered columns
-            for num, col in enumerate(q_cols):
-                subarray = q_array[:, num]#single column of the dataframe
-                l = np.sum(~np.isnan(subarray))#counting not nan entries
-                if l > 0:    
-                    df.loc[:, col] = subarray#setting array into column if there is data available
-                    q_l.append(l)#tracking length
-                else:
-                    df = df.drop(columns=[col])#removing column if not
-            q_length.append(q_l)#adding length array
+        q_l = []#will contain the lengths of the single quantitiy columns (q_1, q_2...)
         
-        #now all columns with number n must have the same length (eta_1, phi_1...) (assuming assert_object_validity has been called before)
-        for num in range(len(q_length[0])):#number of particles
-            for mun in range(len(q_length)-1):#number of quantities
-                assert q_length[mun][num] == q_length[mun+1][num], "Compactification failed"
+        q_cols = [f'{q}_{i}' for i in range(1, n+1)]#list of all relevant columns of the quantity
+        
+        subset = df[q_cols]#
+        q_array = subset.values #2d array of the values columns of the dataframe belonging to a certain quantity
+
+        q_array = np.apply_along_axis(shift_left, axis=1, arr=q_array)#shiftig to the left
+
+        #setting the newly ordered columns
+        for num, col in enumerate(q_cols):
+            subarray = q_array[:, num]#single column of the dataframe
+            l = np.sum(~np.isnan(subarray))#counting not nan entries
+            if l > 0:    
+                df.loc[:, col] = subarray#setting array into column if there is data available
+                q_l.append(l)#tracking length
+            else:
+                df = df.drop(columns=[col])#removing column if not
+        q_length.append(q_l)#adding length array
+
+    #now all columns with number n must have the same length (eta_1, phi_1...) (assuming assert_object_validity has been called before)
+    for num in range(len(q_length[0])):#number of particles
+        for mun in range(len(q_length)-1):#number of quantities
+            assert q_length[mun][num] == q_length[mun+1][num], "Compactification failed"
 
     return df  
 
