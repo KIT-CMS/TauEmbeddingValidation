@@ -39,8 +39,9 @@ def calculate_dr(df, mode, filter=None, df2=None):
         n_target = get_n_occurence(df2, "eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "jet_all":
-        n_comp = get_n_occurence(df, "Jet_eta")
-        n_target = get_n_occurence(df2, "Jet_eta")
+        # df: emb, df2: data
+        n_comp = get_n_occurence(df2, "Jet_eta")
+        n_target = get_n_occurence(df, "Jet_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     else:
         raise ValueError("Invalid mode selected")
@@ -309,63 +310,22 @@ def remove_muon_jets(df, dr_arr, cut):
             
     return df
 
-def find_unmatched_objects(dr, emb_df, data_df, mode):
 
-    if mode=="jet_all":
-        n_emb = get_n_occurence(emb_df, "Jet_eta_")
-        n_data = get_n_occurence(data_df, "Jet_eta_")
-        pt_cols_emb = [f"Jet_pt_{n}" for n in range(1,n_emb+1)]
-        pt_cols_data = [f"Jet_pt_{n}" for n in range(1,n_data+1)]
-        eta_cols_emb = [f"Jet_eta_{n}" for n in range(1,n_emb+1)]
-        eta_cols_data = [f"Jet_eta_{n}" for n in range(1,n_data+1)]
-        phi_cols_emb = [f"Jet_phi_{n}" for n in range(1,n_emb+1)]
-        phi_cols_data = [f"Jet_phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["Jet_pt", "Jet_eta", "Jet_phi"]
-    elif mode == "muon_all":
-        n_emb = get_n_occurence(emb_df, "eta_")
-        n_data = get_n_occurence(data_df, "eta_")
-        pt_cols_emb = [f"pt_{n}" for n in range(1,n_emb+1)]
-        pt_cols_data = [f"pt_{n}" for n in range(1,n_data+1)]
-        eta_cols_emb = [f"eta_{n}" for n in range(1,n_emb+1)]
-        eta_cols_data = [f"eta_{n}" for n in range(1,n_data+1)]
-        phi_cols_emb = [f"phi_{n}" for n in range(1,n_emb+1)]
-        phi_cols_data = [f"phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["pt", "eta", "phi"]
-    else:
-        raise ValueError("Invalid mode")
-    
+def remove_nonmatches(df1, df2):
+    # removes those jets which were supposed to be matched but couldn't for some some reason
 
-    unmatched_mask_emb = ~np.any(~np.isnan(dr), axis=1)
-    unmatched_mask_data = ~np.any(~np.isnan(dr), axis=2)
+    mask1 = df1["LJ_eta"].isna()
+    mask2 = df2["LJ_eta"].isna()
+    mask = np.logical_and(mask1, mask2)
 
-    data_unmatched = data_df[pt_cols_data + eta_cols_data + phi_cols_data + ["run", "lumi", "event"]].copy(deep=True)
-    emb_unmatched = emb_df[pt_cols_emb + eta_cols_emb + phi_cols_emb + ["run", "lumi", "event"]].copy(deep=True)
+    df1.loc[mask, ["LJ_pt", "LJ_eta", "LJ_phi", "LJ_m"]] = np.nan
+    df2.loc[mask, ["LJ_pt", "LJ_eta", "LJ_phi", "LJ_m"]] = np.nan
 
-    data_unmatched.loc[:, pt_cols_data].where(unmatched_mask_data, np.nan, inplace=True)
-    data_unmatched.loc[:, eta_cols_data].where(unmatched_mask_data, np.nan, inplace=True)
-    data_unmatched.loc[:, phi_cols_data].where(unmatched_mask_data, np.nan, inplace=True)
+    mask1 = df1["TJ_eta"].isna()
+    mask2 = df2["TJ_eta"].isna()
+    mask = np.logical_and(mask1, mask2)
 
-    emb_unmatched.loc[:, pt_cols_emb].where(unmatched_mask_emb, np.nan, inplace=True)
-    emb_unmatched.loc[:, eta_cols_emb].where(unmatched_mask_emb, np.nan, inplace=True)
-    emb_unmatched.loc[:, phi_cols_emb].where(unmatched_mask_emb, np.nan, inplace=True)
+    df1.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan
+    df2.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan
 
-
-    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
-    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
-
-
-
-    # data_unmatched.loc[:, pt_cols_data] = data_unmatched[pt_cols_data].where(unmatched_mask_data, np.nan)
-    # data_unmatched.loc[:, eta_cols_data] = data_unmatched[eta_cols_data].where(unmatched_mask_data, np.nan)
-    # data_unmatched.loc[:, phi_cols_data] = data_unmatched[phi_cols_data].where(unmatched_mask_data, np.nan)
-
-    # emb_unmatched.loc[:, pt_cols_emb] = emb_unmatched[pt_cols_emb].where(unmatched_mask_emb, np.nan)
-    # emb_unmatched.loc[:, eta_cols_emb] = emb_unmatched[eta_cols_emb].where(unmatched_mask_emb, np.nan)
-    # emb_unmatched.loc[:, phi_cols_emb] = emb_unmatched[phi_cols_emb].where(unmatched_mask_emb, np.nan)
-
-
-    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
-    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
-
-
-    return data_unmatched, emb_unmatched
+    return df1, df2

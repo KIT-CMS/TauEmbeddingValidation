@@ -7,7 +7,7 @@ import numpy as np
 import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n
-from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
+from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets, remove_nonmatches
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching, get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
 
@@ -136,7 +136,8 @@ if create_plots:
 # emb_df = transform_ids(emb_df)
 
 jet_filters = [
-    {"col":"Jet_pt",  "min":25,  "max":None}
+    {"col":"Jet_pt",  "min":25,  "max":None},
+    # {"col":"Jet_eta",  "min":3,  "max":None}
 ]
 muon_filters = [
     {"col":"pt",  "min":8,  "max":None},
@@ -274,10 +275,10 @@ dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
 data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
-data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
+# data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
 
 emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df, "Jet_eta_"))
-emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
+# emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
@@ -333,11 +334,19 @@ if create_plots:
 # Matching jets
 ########################################################################################################################################################################
 
+# filter_list = [
+#     {"col":"dr", "min":0, "max":0.1}
+# ]
+
 data_df, emb_df_matched = prepare_jet_matching(data_df, emb_df_matched)
 dr = calculate_dr(emb_df_matched, "jet", filter=None)
+# dr = calculate_dr(emb_df_matched, "jet", filter=filter_list)
 
 emb_df_for_matching = get_matching_df(emb_df_matched, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
+
+data_df, emb_df_matched = remove_nonmatches(data_df, emb_df_matched)
+
 
 print("Jets matched")
 
