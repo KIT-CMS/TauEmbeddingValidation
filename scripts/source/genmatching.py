@@ -316,14 +316,14 @@ def remove_nonmatches(df1, df2):
 
     mask1 = df1["LJ_eta"].isna()
     mask2 = df2["LJ_eta"].isna()
-    mask = np.logical_and(mask1, mask2)
+    mask = np.logical_or(mask1, mask2)
 
     df1.loc[mask, ["LJ_pt", "LJ_eta", "LJ_phi", "LJ_m"]] = np.nan
     df2.loc[mask, ["LJ_pt", "LJ_eta", "LJ_phi", "LJ_m"]] = np.nan
 
     mask1 = df1["TJ_eta"].isna()
     mask2 = df2["TJ_eta"].isna()
-    mask = np.logical_and(mask1, mask2)
+    mask = np.logical_or(mask1, mask2)
 
     df1.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan
     df2.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan

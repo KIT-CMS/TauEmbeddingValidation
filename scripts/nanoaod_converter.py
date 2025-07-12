@@ -345,6 +345,9 @@ dr = calculate_dr(emb_df_matched, "jet", filter=None)
 emb_df_for_matching = get_matching_df(emb_df_matched, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
 
+# data_df_for_matching = get_matching_df(data_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
+# data_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), data_df_for_matching, "jet")
+
 data_df, emb_df_matched = remove_nonmatches(data_df, emb_df_matched)
 
 
