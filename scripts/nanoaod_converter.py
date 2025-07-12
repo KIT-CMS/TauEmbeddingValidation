@@ -364,13 +364,13 @@ if create_plots:
     dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
     #dr between muon1|2 data and muon1|2 embedding
-    ax = nq_comparison({"Leadin jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
+    ax = nq_comparison({"Leading jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
-    ax = nq_comparison({"Leadin jet":jet_dr_matched[:,0], "Trailing jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
+    ax = nq_comparison({"Leading jet":jet_dr_matched[:,0], "Trailing jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
     plt.close()
