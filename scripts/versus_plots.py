@@ -140,10 +140,8 @@ plotting_instructions = [
 ########################################################################################################################################################################
 
 data_df = pd.read_hdf(hdf_path, "data_df")
-emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
-# emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
-
-verify_events(data_df, emb_df_matched)
+emb_df = pd.read_hdf(hdf_path, "emb_df")
+verify_events(data_df, emb_df)
 
 print("Data loaded and verified")
 
@@ -156,7 +154,7 @@ print("Data loaded and verified")
 for quantity in plotting_instructions:
     col = quantity["col"]
     x = data_df[col]
-    y = emb_df_matched[col]
+    y = emb_df[col]
     xlabel = quantity["title"] + " (data)"
     ylabel = quantity["title"] + " (emb)"
     min_lim = quantity["min"]

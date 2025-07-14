@@ -217,7 +217,7 @@ data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
 dr = calculate_dr(emb_df, "muon", filter=None)
-emb_df_matched, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
+emb_df, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 
 print("Genmatching applied")
@@ -257,7 +257,7 @@ if create_plots:
 ########################################################################################################################################################################
 
 data_df["m_vis"], data_df["pt_vis"] = get_z_m_pt(data_df)
-emb_df_matched["m_vis"], emb_df_matched["pt_vis"] = get_z_m_pt(emb_df_matched)
+emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
 
 print("Added m_vis and pt_vis")
 
@@ -274,6 +274,8 @@ data_df = remove_muon_jets(data_df, dr1, dr_cut)
 dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
+print(len(data_df), len(emb_df))
+
 data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
 # data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
 
@@ -281,6 +283,8 @@ emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df,
 # emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
+
+print(len(data_df), len(emb_df))
 
 if create_plots:
     # Creating plots indicating performance of muon removal
@@ -338,17 +342,17 @@ if create_plots:
 #     {"col":"dr", "min":0, "max":0.1}
 # ]
 
-data_df, emb_df_matched = prepare_jet_matching(data_df, emb_df_matched)
-dr = calculate_dr(emb_df_matched, "jet", filter=None)
+data_df, emb_df = prepare_jet_matching(data_df, emb_df)
+dr = calculate_dr(emb_df, "jet", filter=None)
 # dr = calculate_dr(emb_df_matched, "jet", filter=filter_list)
 
-emb_df_for_matching = get_matching_df(emb_df_matched, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
-emb_df_matched, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
+emb_df_for_matching = get_matching_df(emb_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
+emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
 
 # data_df_for_matching = get_matching_df(data_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 # data_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), data_df_for_matching, "jet")
 
-data_df, emb_df_matched = remove_nonmatches(data_df, emb_df_matched)
+# data_df, emb_df = remove_nonmatches(data_df, emb_df)
 
 
 print("Jets matched")
@@ -356,11 +360,11 @@ print("Jets matched")
 
 # Creating plots indicating performance of jet matching
 if create_plots:
-    dphi_1 = subtract_columns(emb_df_matched["Jet_phi_1"], data_df["LJ_phi"], "phi_1")
-    deta_1 = subtract_columns(emb_df_matched["Jet_eta_1"], data_df["LJ_eta"], "eta_1")
+    dphi_1 = subtract_columns(emb_df["Jet_phi_1"], data_df["LJ_phi"], "phi_1")
+    deta_1 = subtract_columns(emb_df["Jet_eta_1"], data_df["LJ_eta"], "eta_1")
     dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
-    dphi_2 = subtract_columns(emb_df_matched["Jet_phi_2"], data_df["TJ_phi"], "phi_2")
-    deta_2 = subtract_columns(emb_df_matched["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
+    dphi_2 = subtract_columns(emb_df["Jet_phi_2"], data_df["TJ_phi"], "phi_2")
+    deta_2 = subtract_columns(emb_df["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
     dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
     #dr between muon1|2 data and muon1|2 embedding
@@ -391,8 +395,7 @@ initialize_dir(output_path)
 
 store = pd.HDFStore(os.path.join(output_path, "converted_nanoaod.h5"), 'w')  
 store.put("data_df", data_df, index=False)
-store.put("emb_df_matched", emb_df_matched, index=False)
-# store.put("emb_df_matched_filtered", emb_df_matched_filtered, index=False)
+store.put("emb_df", emb_df, index=False)
 store.close()
 
 print("Data stored in hdf store")

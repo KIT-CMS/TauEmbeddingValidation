@@ -189,9 +189,9 @@ plotting_instructions = [
 
 data_df = pd.read_hdf(hdf_path, "data_df")
 # data_df_matched = pd.read_hdf(hdf_path, "data_df_matched")
-emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
+emb_df = pd.read_hdf(hdf_path, "emb_df")
 
-verify_events(data_df, emb_df_matched)
+verify_events(data_df, emb_df)
 
 print("Data loaded and verified")
 
@@ -214,7 +214,7 @@ for quantity in plotting_instructions:
 
             col = quantity["col"]
 
-            q_diff = subtract_columns(data_df[col], emb_df_matched[col], col)
+            q_diff = subtract_columns(data_df[col], emb_df[col], col)
             
             if relative:
                 title = quantity["rel_title"]
@@ -257,8 +257,8 @@ print("Plotting finished")
 
 
 #         col1 = subtract_columns(data_df[col], data_df_matched[col], col)
-#         col2 = subtract_columns(data_df[col], emb_df_matched[col], col)
-#         col3 = subtract_columns(data_df_matched[col], emb_df_matched[col], col)
+#         col2 = subtract_columns(data_df[col], emb_df[col], col)
+#         col3 = subtract_columns(data_df_matched[col], emb_df[col], col)
 
 #         if relative:
 #             col1 = divide_columns(col1, np.abs(data_df[col]))

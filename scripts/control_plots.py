@@ -146,10 +146,9 @@ plotting_instructions = [
 ########################################################################################################################################################################
 
 data_df = pd.read_hdf(hdf_path, "data_df")
-emb_df_matched = pd.read_hdf(hdf_path, "emb_df_matched")
-# emb_df_matched_filtered = pd.read_hdf(hdf_path, "emb_df_matched_filtered")
+emb_df = pd.read_hdf(hdf_path, "emb_df")
 
-verify_events(data_df, emb_df_matched)
+verify_events(data_df, emb_df)
 
 print("Data loaded and verified")
 
@@ -171,7 +170,7 @@ for quantity in plotting_instructions:
         col = quantity["col"]
         title = quantity["title"]
 
-        ax = control_plot(data_df[col], emb_df_matched[col], bins, title, dy)
+        ax = control_plot(data_df[col], emb_df[col], bins, title, dy)
 
         if quantity["xlog"]:
             ax[0].set_xscale("log")
@@ -219,8 +218,8 @@ print("Created control plots ")
 #         title = quantity["title"]
 
 #         col0 = data_df[col]
-#         col1 = emb_df_matched_filtered[col]
-#         col2 = emb_df_matched[col]
+#         col1 = emb_df[col]
+#         col2 = emb_df[col]
 
 #         q_dict = {
 #             "Emb (matched + filtered)": col1,
