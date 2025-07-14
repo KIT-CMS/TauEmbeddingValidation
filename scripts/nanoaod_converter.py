@@ -267,70 +267,70 @@ print("Added m_vis and pt_vis")
 # Removing muon jets
 ########################################################################################################################################################################
 
-dr_cut = 0.35
+# dr_cut = 0.35
 
-dr1 = calculate_dr(data_df, "filter", filter=None)
-data_df = remove_muon_jets(data_df, dr1, dr_cut)
-dr2 = calculate_dr(emb_df, "filter", filter=None)
-emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
+# dr1 = calculate_dr(data_df, "filter", filter=None)
+# data_df = remove_muon_jets(data_df, dr1, dr_cut)
+# dr2 = calculate_dr(emb_df, "filter", filter=None)
+# emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
-print(len(data_df), len(emb_df))
+# print(len(data_df), len(emb_df))
 
-data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
-# data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
+# data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
+# # data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
 
-emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df, "Jet_eta_"))
-# emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
+# emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df, "Jet_eta_"))
+# # emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
 
-data_df, emb_df = create_concordant_subsets(data_df, emb_df)
+# data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
-print(len(data_df), len(emb_df))
+# print(len(data_df), len(emb_df))
 
-if create_plots:
-    # Creating plots indicating performance of muon removal
-    dr1 = dr1.flatten()
-    dr2 = dr2.flatten()
+# if create_plots:
+#     # Creating plots indicating performance of muon removal
+#     dr1 = dr1.flatten()
+#     dr2 = dr2.flatten()
 
-    ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet}$")
-    ax.set_yscale("log")
-    ymin, ymax = ax.get_ylim()
-    ax.vlines(dr_cut, 0, ymax, colors="black", linestyles="dashed")
-    plt.savefig(os.path.join(match_plot_path, f"mujet_dr.png"))
-    plt.close()
+#     ax = nq_comparison({"Data":dr1, "Emb":dr2}, np.linspace(0,10*dr_cut, 30), r"$\delta r_\text{µ jet}$")
+#     ax.set_yscale("log")
+#     ymin, ymax = ax.get_ylim()
+#     ax.vlines(dr_cut, 0, ymax, colors="black", linestyles="dashed")
+#     plt.savefig(os.path.join(match_plot_path, f"mujet_dr.png"))
+#     plt.close()
 
  
 
-    # Creating plots indicating performance of muon removal
+#     # Creating plots indicating performance of muon removal
 
-    njet_emb = count_n_objects(emb_df, "Jet_eta_")
-    njet_data = count_n_objects(data_df, "Jet_eta_")
-    max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
+#     njet_emb = count_n_objects(emb_df, "Jet_eta_")
+#     njet_data = count_n_objects(data_df, "Jet_eta_")
+#     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
-    nmu_emb = count_n_objects(emb_df, "eta_")
-    nmu_data = count_n_objects(data_df, "eta_")
-    max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+#     nmu_emb = count_n_objects(emb_df, "eta_")
+#     nmu_data = count_n_objects(data_df, "eta_")
+#     max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
 
-    njet_delta = njet_data - njet_emb
-    nmu_delta = nmu_data - nmu_emb
-    max_delta = max([np.amax(njet_delta), np.amax(nmu_delta)])
-    min_delta = min([np.amin(njet_delta), np.amin(nmu_delta)])
-
-    
-    ax = control_plot(njet_data, njet_emb, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", None)
-    ax[0].set_yscale("log")
-    plt.savefig(os.path.join(match_plot_path, f"n_jet_02_post_filter.png"))
-    plt.close()
+#     njet_delta = njet_data - njet_emb
+#     nmu_delta = nmu_data - nmu_emb
+#     max_delta = max([np.amax(njet_delta), np.amax(nmu_delta)])
+#     min_delta = min([np.amin(njet_delta), np.amin(nmu_delta)])
 
     
-    ax = control_plot(nmu_data, nmu_emb, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", None)
-    ax[0].set_yscale("log")
-    plt.savefig(os.path.join(match_plot_path, f"n_mu_02_post_filter.png"))
-    plt.close()
+#     ax = control_plot(njet_data, njet_emb, np.arange(-0.5, max_njet+0.5, 1), r"$n_\text{jets}$ in embedding and data", None)
+#     ax[0].set_yscale("log")
+#     plt.savefig(os.path.join(match_plot_path, f"n_jet_02_post_filter.png"))
+#     plt.close()
 
-    ax = nq_comparison({"Mu":nmu_delta, "Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
-    ax.set_yscale("log")
-    plt.savefig(os.path.join(match_plot_path, f"n_delta_02.png"))
-    plt.close()
+    
+#     ax = control_plot(nmu_data, nmu_emb, np.arange(-0.5, max_nmu+0.5, 1), r"$n_\text{µ}$ in embedding and data", None)
+#     ax[0].set_yscale("log")
+#     plt.savefig(os.path.join(match_plot_path, f"n_mu_02_post_filter.png"))
+#     plt.close()
+
+#     ax = nq_comparison({"Mu":nmu_delta, "Jet":njet_delta}, np.arange(min_delta-0.5, max_delta+0.5, 1), r"$n_\text{x, data}-n_\text{x, emb}$")
+#     ax.set_yscale("log")
+#     plt.savefig(os.path.join(match_plot_path, f"n_delta_02.png"))
+#     plt.close()
 
 
 
@@ -343,16 +343,13 @@ if create_plots:
 # ]
 
 data_df, emb_df = prepare_jet_matching(data_df, emb_df)
+
 dr = calculate_dr(emb_df, "jet", filter=None)
-# dr = calculate_dr(emb_df_matched, "jet", filter=filter_list)
 
 emb_df_for_matching = get_matching_df(emb_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
 
-# data_df_for_matching = get_matching_df(data_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
-# data_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), data_df_for_matching, "jet")
-
-# data_df, emb_df = remove_nonmatches(data_df, emb_df)
+data_df, emb_df = remove_nonmatches(data_df, emb_df)
 
 
 print("Jets matched")
