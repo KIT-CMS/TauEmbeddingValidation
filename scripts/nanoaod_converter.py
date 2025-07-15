@@ -22,7 +22,7 @@ emb_path = "./data/2022G-nanoaod_gen/"
 data_filenames = "2022G-data_*.root"
 emb_filenames = "2022G-emb_gen_*.root"
 
-output_path = "./data/converted"
+output_path = "./output/data"
 
 match_plot_path = "./output/match_plots"
 
@@ -274,7 +274,7 @@ data_df = remove_muon_jets(data_df, dr1, dr_cut)
 dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
 
-print(len(data_df), len(emb_df))
+# print(len(data_df), len(emb_df))
 
 data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
 # data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
@@ -284,7 +284,7 @@ emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df,
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
-print(len(data_df), len(emb_df))
+# print(len(data_df), len(emb_df))
 
 if create_plots:
     # Creating plots indicating performance of muon removal
@@ -338,13 +338,13 @@ if create_plots:
 # Matching jets
 ########################################################################################################################################################################
 
-# filter_list = [
-#     {"col":"dr", "min":0, "max":0.1}
-# ]
+filter_list = [
+    {"col":"dr", "min":0.2, "max":None}
+]
 
 data_df, emb_df = prepare_jet_matching(data_df, emb_df)
 
-dr = calculate_dr(emb_df, "jet", filter=None)
+dr = calculate_dr(emb_df, "jet", filter=filter_list)
 
 emb_df_for_matching = get_matching_df(emb_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
 emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
