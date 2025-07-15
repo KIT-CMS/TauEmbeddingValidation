@@ -11,7 +11,7 @@ from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_jet_matching,get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
 
-from source.importer import quality_cut, assert_object_validity, compactify_objects, transform_ids
+from source.importer import quality_cut, assert_object_validity, compactify_objects
 
 ########################################################################################################################################################################
 # paths for input and output 
