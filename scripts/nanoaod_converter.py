@@ -267,7 +267,7 @@ print("Added m_vis and pt_vis")
 # Removing muon jets
 ########################################################################################################################################################################
 
-dr_cut = 0.35
+dr_cut = 0.3
 
 dr1 = calculate_dr(data_df, "filter", filter=None)
 data_df = remove_muon_jets(data_df, dr1, dr_cut)
@@ -338,14 +338,9 @@ if create_plots:
 # Matching jets
 ########################################################################################################################################################################
 
-# filter_list = [
-#     {"col":"dr", "min":0.2, "max":None}
-# ]
-
 data_df, emb_df_for_matching = prepare_jet_matching(data_df, emb_df)
 
 dr = calculate_dr(emb_df_for_matching, "jet", filter=None)
-# dr = calculate_dr(emb_df_for_matching, "jet", filter=filter_list)
 
 emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df, "jet")
 
