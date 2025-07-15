@@ -67,16 +67,22 @@ def prepare_jet_matching(data, emb):
     data["LJ_m"] = data["Jet_m_1"].copy(deep=True)
     data["TJ_m"] = data["Jet_m_2"].copy(deep=True)
 
-    emb["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
-    emb["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
-    emb["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
-    emb["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
-    emb["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
-    emb["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
-    emb["LJ_m"] = data["Jet_m_1"].copy(deep=True)
-    emb["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+    emb_for_matching = emb[["run", "lumi", "event"]].copy(deep=True)
 
-    return data, emb
+    for column in emb.columns:
+        if column.startswith("Jet_"):
+            emb_for_matching[column] = emb[column].copy(deep=True)
+
+    emb_for_matching["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
+    emb_for_matching["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
+    emb_for_matching["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
+    emb_for_matching["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
+    emb_for_matching["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
+    emb_for_matching["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
+    emb_for_matching["LJ_m"] = data["Jet_m_1"].copy(deep=True)
+    emb_for_matching["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+
+    return data, emb_for_matching
 
 def verify_events(*data):
     #checks whether all dataframes have the same order

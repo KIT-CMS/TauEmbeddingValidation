@@ -338,16 +338,16 @@ if create_plots:
 # Matching jets
 ########################################################################################################################################################################
 
-filter_list = [
-    {"col":"dr", "min":0.2, "max":None}
-]
+# filter_list = [
+#     {"col":"dr", "min":0.2, "max":None}
+# ]
 
-data_df, emb_df = prepare_jet_matching(data_df, emb_df)
+data_df, emb_df_for_matching = prepare_jet_matching(data_df, emb_df)
 
-dr = calculate_dr(emb_df, "jet", filter=filter_list)
+dr = calculate_dr(emb_df_for_matching, "jet", filter=None)
+# dr = calculate_dr(emb_df_for_matching, "jet", filter=filter_list)
 
-emb_df_for_matching = get_matching_df(emb_df, ["LJ_pt", "TJ_pt", "LJ_eta", "TJ_eta", "LJ_phi", "TJ_phi", "LJ_m", "TJ_m"])
-emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching, "jet")
+emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df, "jet")
 
 data_df, emb_df = remove_nonmatches(data_df, emb_df)
 
