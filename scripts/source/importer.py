@@ -29,6 +29,8 @@ def nanoaod_to_dataframe(files, quantities):
 
         nanoaod = nanoaod["Events;1"]
 
+        # print(nanoaod.keys())
+
         events = {}
 
         for quantity in quantities:
@@ -247,7 +249,8 @@ def compactify_objects(df, basenames, n):
         q_l = []#will contain the lengths of the single quantitiy columns (q_1, q_2...)
         
         q_cols = [f'{q}_{i}' for i in range(1, n+1)]#list of all relevant columns of the quantity
-        
+        # q_cols2 = q_cols.copy()
+
         subset = df[q_cols]#
         q_array = subset.values #2d array of the values columns of the dataframe belonging to a certain quantity
 
@@ -262,6 +265,15 @@ def compactify_objects(df, basenames, n):
                 q_l.append(l)#tracking length
             else:
                 df = df.drop(columns=[col])#removing column if not
+                # q_cols2.remove(col)
+
+        # #renaming columns so that any not nan columns after removed columns are labelled orderly
+        # col_mapper = {}
+        # for num, col in enumerate(q_cols2):
+        #     col_mapper[col] = f"{q}_{num+1}"
+
+        # df = df.rename(columns=col_mapper)
+        
         q_length.append(q_l)#adding length array
 
     #now all columns with number n must have the same length (eta_1, phi_1...) (assuming assert_object_validity has been called before)

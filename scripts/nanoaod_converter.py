@@ -16,11 +16,21 @@ from source.importer import quality_cut, assert_object_validity, compactify_obje
 ########################################################################################################################################################################
 # paths for input and output 
 ########################################################################################################################################################################
+
+#unpatched data
 data_path = "./data/2022G-nanoaod_gen/"
 emb_path = "./data/2022G-nanoaod_gen/"
 
+#patched data (but same length as unpatched)
+# data_path = "./data/2022_patched_driver_reduced/"
+# emb_path = "./data/2022_patched_driver_reduced/"
+
+#patched data (but full length)
+# data_path = "./data/2022_patched_driver_full/"
+# emb_path = "./data/2022_patched_driver_full/"
+
 data_filenames = "2022G-data_*.root"
-emb_filenames = "2022G-emb_gen_*.root"
+emb_filenames = "2022G-embedding_*.root"
 
 output_path = "./output/data"
 
@@ -83,8 +93,10 @@ print("Loading data")
 data_files = list(pathlib.Path(data_path).glob(data_filenames))
 emb_files = list(pathlib.Path(emb_path).glob(emb_filenames))
 
+
 data_df = nanoaod_to_dataframe(files=data_files, quantities=data_quantities)
 emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
+
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
@@ -132,8 +144,6 @@ if create_plots:
 # Applying quality cuts on muons and jets
 ########################################################################################################################################################################
 
-# data_df = transform_ids(data_df)
-# emb_df = transform_ids(emb_df)
 
 jet_filters = [
     {"col":"Jet_pt",  "min":25,  "max":None},
@@ -261,7 +271,13 @@ emb_df["m_vis"], emb_df["pt_vis"] = get_z_m_pt(emb_df)
 
 print("Added m_vis and pt_vis")
 
+data_df = data_df.loc[data_df["m_vis"]>18]
+emb_df = emb_df.loc[emb_df["m_vis"]>18]
 
+data_df, emb_df = create_concordant_subsets(data_df, emb_df)
+verify_events(data_df, emb_df)
+
+print(f"Removed events with m_vis<18. \nLength dataset:\t {len(emb_df)} events")
 
 ########################################################################################################################################################################
 # Removing muon jets

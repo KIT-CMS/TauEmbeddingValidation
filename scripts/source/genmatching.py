@@ -21,7 +21,9 @@ def get_filter_list():
 def calculate_dr(df, mode, filter=None, df2=None):
     #this function returns the dr value for all particle combination from embedding
     #the first "n_data" particles of data are compare to the first "n_emb" particles of the embeddign dataset
-
+    #this function is a mess and i know it, however it grew like this and there is no time left to improve its readability
+    # i would suggest that instead of df and df2 dicts such as {"eta":[[values], [values]], "phi":[[values], [values]]} are given as argument for both master and target
+    # thereby the whole naming issues are no longer a problem and the function is more easily readable
     if mode == "muon":
         n_comp = get_n_occurence(df, "eta")
         n_target = 2
@@ -35,13 +37,13 @@ def calculate_dr(df, mode, filter=None, df2=None):
         n_target = get_n_occurence(df, "Jet_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "muon_all":
-        n_comp = get_n_occurence(df, "eta")
-        n_target = get_n_occurence(df2, "eta")
+        n_comp = get_n_occurence(df2, "eta")
+        n_target = get_n_occurence(df, "eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "jet_all":
         # df: emb, df2: data
-        n_comp = get_n_occurence(df2, "Jet_eta")
-        n_target = get_n_occurence(df, "Jet_eta")
+        n_comp = get_n_occurence(df2, "Jet_eta") # data
+        n_target = get_n_occurence(df, "Jet_eta") # emb
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     else:
         raise ValueError("Invalid mode selected")
@@ -339,3 +341,59 @@ def remove_nonmatches(df1, df2):
     df2.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan
 
     return df1, df2
+
+
+def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
+
+    if mode=="jet_all":
+        n_emb = get_n_occurence(emb_df, "Jet_eta_")
+        n_data = get_n_occurence(data_df, "Jet_eta_")
+        pt_cols_emb = [f"Jet_pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"Jet_pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"Jet_eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"Jet_eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"Jet_phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"Jet_phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["Jet_pt", "Jet_eta", "Jet_phi"]
+    elif mode == "muon_all":
+        n_emb = get_n_occurence(emb_df, "eta_")
+        n_data = get_n_occurence(data_df, "eta_")
+        pt_cols_emb = [f"pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["pt", "eta", "phi"]
+    else:
+        raise ValueError("Invalid mode")
+    
+    data_unmatched = data_df[pt_cols_data + eta_cols_data + phi_cols_data + ["run", "lumi", "event"]].copy(deep=True)
+    emb_unmatched = emb_df[pt_cols_emb + eta_cols_emb + phi_cols_emb + ["run", "lumi", "event"]].copy(deep=True)
+
+    dr[dr > cut] = np.nan
+
+    temp = ~np.isnan(dr)
+    emb_match = np.any(temp, axis=2)
+    data_match = np.any(temp, axis=1)
+
+    # print(np.sum(data_match))
+
+    # print(np.sum(np.isnan(data_unmatched.values)), np.sum(~np.isnan(data_unmatched.values)))
+
+    for n_event in range(dr.shape[0]):
+        for n_emb in range(dr.shape[1]):
+            if emb_match[n_event, n_emb]:
+                for bn in basenames:
+                    emb_unmatched.loc[n_event, f"{bn}_{n_emb+1}"] = np.nan
+        for n_data in range(dr.shape[2]):
+            if data_match[n_event, n_data]:
+                for bn in basenames:
+                    data_unmatched.loc[n_event, f"{bn}_{n_data+1}"] = np.nan
+
+    # print(np.sum(np.isnan(data_unmatched.values)), np.sum(~np.isnan(data_unmatched.values)))
+    # print(data_unmatched.columns)
+    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
+    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
+    # print(data_unmatched.columns)
+    return data_unmatched, emb_unmatched
