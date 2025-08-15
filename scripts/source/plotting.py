@@ -54,6 +54,12 @@ def control_plot(data_col, emb_col, bins, title, dy=None):
     rel_diff = divide_arrays(data_hist, emb_hist)
     rel_diff_error = divide_arrays(data_errors, emb_hist)
 
+    # print("Stat. errors", np.nanmean(rel_diff_error), np.nanstd(rel_diff_error))
+    # print("Rel. dev", np.nanmin(rel_diff_error), np.nanmax(rel_diff_error))
+
+    # print("Rel. value", np.nanmean(rel_diff), np.nanstd(rel_diff))
+    # print("Rel. dev", np.nanmin(rel_diff), np.nanmax(rel_diff))
+
     ax_temp.errorbar(bins_data_center, rel_diff, xerr=np.diff(edges)/2, yerr=rel_diff_error, label="observed", c="black", fmt="o", linestyle="none", markersize=8)
     ax_temp.bar(bins_data_center, 2*rel_diff_error, width=np.diff(edges), bottom=1-rel_diff_error, color="grey", alpha=0.5, edgecolor="none")
 

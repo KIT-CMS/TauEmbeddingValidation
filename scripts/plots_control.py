@@ -157,7 +157,7 @@ print("Data loaded and verified")
 ########################################################################################################################################################################
 # Basic control plots comparing data and matched embedding
 ########################################################################################################################################################################
-
+print(len(data_df))
 for quantity in plotting_instructions:
     for mode in ["custom", "default"]:
         if mode == "default":
@@ -169,6 +169,8 @@ for quantity in plotting_instructions:
 
         col = quantity["col"]
         title = quantity["title"]
+
+        print("\n", title)
 
         ax = control_plot(data_df[col], emb_df[col], bins, title, dy)
 

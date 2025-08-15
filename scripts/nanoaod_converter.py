@@ -18,16 +18,16 @@ from source.importer import quality_cut, assert_object_validity, compactify_obje
 ########################################################################################################################################################################
 
 #unpatched data
-data_path = "./data/2022G-nanoaod_gen/"
-emb_path = "./data/2022G-nanoaod_gen/"
+# data_path = "./data/2022G-nanoaod_gen/"
+# emb_path = "./data/2022G-nanoaod_gen/"
 
 #patched data (but same length as unpatched)
 # data_path = "./data/2022_patched_driver_reduced/"
 # emb_path = "./data/2022_patched_driver_reduced/"
 
 #patched data (but full length)
-# data_path = "./data/2022_patched_driver_full/"
-# emb_path = "./data/2022_patched_driver_full/"
+data_path = "./data/2022_patched_driver/"
+emb_path = "./data/2022_patched_driver/"
 
 data_filenames = "2022G-data_*.root"
 emb_filenames = "2022G-embedding_*.root"
@@ -65,7 +65,22 @@ data_quantities = [
     {"key":"Muon_tightId",      "target":"MuonIsTight",     "expand":True},
     {"key":"Muon_mediumId",     "target":"MuonIsMedium",    "expand":True},
     {"key":"Muon_looseId",      "target":"MuonIsLoose",     "expand":True},
+
+    {"key":"Electron_charge",   "target":"Electron_charge",    "expand":True},
+    {"key":"Electron_mass",     "target":"Electron_m",     "expand":True},
+    {"key":"Electron_eta",      "target":"Electron_eta",    "expand":True},
+    {"key":"Electron_phi",      "target":"Electron_phi",     "expand":True},
+    {"key":"Electron_pt",       "target":"Electron_pt",     "expand":True},
+    {"key":"Photon_phi",        "target":"Photon_phi",     "expand":True},
+    {"key":"Photon_eta",        "target":"Photon_eta",     "expand":True},
+    {"key":"Photon_pt",         "target":"Photon_pt",     "expand":True},
 ]
+
+
+
+
+
+
 
 selection_q = [
     {"key":"TauEmbedding_chargeLeadingMuon",		"target":"LM_charge",	"expand":False },
@@ -139,6 +154,7 @@ if create_plots:
     plt.savefig(os.path.join(match_plot_path, f"n_delta_00_raw.png"))
     plt.close()
 
+print("events with correct muon number:", np.sum(nmu_delta==0))
 
 ########################################################################################################################################################################
 # Applying quality cuts on muons and jets
@@ -153,7 +169,7 @@ muon_filters = [
     {"col":"pt",  "min":8,  "max":None},
     {"col":"MuonIsGlobal",  "min":0.5,  "max":None},
     {"col":"MuonIsMedium",  "min":0.5,  "max":None}
-    # {"col":"MuonIsLoose",  "min":None,  "max":0.5}
+    # {"col":"MuonIsLoose",  "min":0.5,  "max":None}
 ]
 
 data_df = quality_cut(data_df, jet_filters, "jet")
@@ -221,12 +237,16 @@ if create_plots:
 # Applying muon matching
 ########################################################################################################################################################################
 
+match_filter = [
+    # {"col":"dr", "min":-0.05, "max":0.05}
+]
+
 
 selection_q_converted = [element["target"] for element in selection_q]
 data_df, emb_df = copy_columns_from_to(emb_df, data_df, selection_q_converted)
 emb_df_for_matching = get_matching_df(emb_df, ["LM_pt", "TM_pt", "LM_eta", "TM_eta", "LM_phi", "TM_phi", "LM_m", "TM_m"])
 
-dr = calculate_dr(emb_df, "muon", filter=None)
+dr = calculate_dr(emb_df, "muon", filter=match_filter)
 emb_df, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 
@@ -243,6 +263,13 @@ if create_plots:
     dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
     #dr between muon1|2 data and muon1|2 embedding
+
+    # mask_temp = dr_1>0.1
+    # print(mask_temp.sum())
+    # print(dr_1[mask_temp].shape)
+    # print(np.sum(muon_id_matched[:,0][mask_temp]==0))
+    # print(np.sum(muon_id_matched[:,0][mask_temp]==1))
+    # print(np.sum(muon_id_matched[:,0][mask_temp]>1))
 
     ax = nq_comparison({"Leading µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
     ax.set_yscale("log")
@@ -348,7 +375,11 @@ if create_plots:
     plt.savefig(os.path.join(match_plot_path, f"n_delta_02.png"))
     plt.close()
 
+print("events with correct muon number:", np.sum(nmu_delta==0))
+# data_df = data_df.loc[njet_delta==0].reset_index(drop=True)
+# emb_df = emb_df.loc[njet_delta==0].reset_index(drop=True)
 
+# print(f"Number of clean events: {len(data_df)}")
 
 ########################################################################################################################################################################
 # Matching jets
@@ -356,7 +387,11 @@ if create_plots:
 
 data_df, emb_df_for_matching = prepare_jet_matching(data_df, emb_df)
 
-dr = calculate_dr(emb_df_for_matching, "jet", filter=None)
+match_filter = [
+    # {"col":"dr", "min":-0.05, "max":0.05}
+]
+
+dr = calculate_dr(emb_df_for_matching, "jet", filter=match_filter)
 
 emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df, "jet")
 
