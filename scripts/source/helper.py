@@ -56,6 +56,15 @@ def get_matching_df(df, rm_cols):
 
     return df_copy
 
+def copy_column_set(from_df, to_df, basename):
+
+    for column in from_df.columns:
+        if column.startswith(basename):
+            new_name = column.replace(basename, basename+"cp_")
+            to_df[new_name] = from_df[column].copy(deep=True)
+
+    return to_df
+
 def prepare_jet_matching(data, emb):
 
     data["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)

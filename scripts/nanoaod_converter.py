@@ -50,6 +50,7 @@ initialize_dir(match_plot_path)
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
     {"key":"PuppiMET_phi",      "target":"PuppiMET_phi",    "expand":False},
+    # {"key":"PuppiMET_eta",      "target":"PuppiMET_eta",    "expand":False},
     {"key":"Muon_phi",          "target":"phi",             "expand":True},
     {"key":"Muon_pt",           "target":"pt",              "expand":True},
     {"key":"Muon_eta",          "target":"eta",             "expand":True},
@@ -66,14 +67,14 @@ data_quantities = [
     {"key":"Muon_mediumId",     "target":"MuonIsMedium",    "expand":True},
     {"key":"Muon_looseId",      "target":"MuonIsLoose",     "expand":True},
 
-    {"key":"Electron_charge",   "target":"Electron_charge",    "expand":True},
-    {"key":"Electron_mass",     "target":"Electron_m",     "expand":True},
+    {"key":"Electron_charge",   "target":"Electron_charge", "expand":True},
+    {"key":"Electron_mass",     "target":"Electron_m",      "expand":True},
     {"key":"Electron_eta",      "target":"Electron_eta",    "expand":True},
-    {"key":"Electron_phi",      "target":"Electron_phi",     "expand":True},
+    {"key":"Electron_phi",      "target":"Electron_phi",    "expand":True},
     {"key":"Electron_pt",       "target":"Electron_pt",     "expand":True},
-    {"key":"Photon_phi",        "target":"Photon_phi",     "expand":True},
-    {"key":"Photon_eta",        "target":"Photon_eta",     "expand":True},
-    {"key":"Photon_pt",         "target":"Photon_pt",     "expand":True},
+    {"key":"Photon_phi",        "target":"Photon_phi",      "expand":True},
+    {"key":"Photon_eta",        "target":"Photon_eta",      "expand":True},
+    {"key":"Photon_pt",         "target":"Photon_pt",       "expand":True},
 ]
 
 
@@ -312,10 +313,24 @@ print(f"Removed events with m_vis<18. \nLength dataset:\t {len(emb_df)} events")
 
 dr_cut = 0.3
 
+
+njet_total_emb = count_n_objects(emb_df, "Jet_eta_")
+njet_total_data = count_n_objects(data_df, "Jet_eta_")
+
 dr1 = calculate_dr(data_df, "filter", filter=None)
 data_df = remove_muon_jets(data_df, dr1, dr_cut)
 dr2 = calculate_dr(emb_df, "filter", filter=None)
 emb_df = remove_muon_jets(emb_df, dr2, dr_cut)
+
+njet_cleaned_emb = count_n_objects(emb_df, "Jet_eta_")
+njet_cleaned_data = count_n_objects(data_df, "Jet_eta_")
+
+
+val1 = np.sum(njet_total_data)-np.sum(njet_cleaned_data)
+val2 = np.sum(njet_total_emb)-np.sum(njet_cleaned_emb)
+
+print(f"Removed {val1} jets from {len(data_df)} data events")
+print(f"Removed {val2} jets from {len(emb_df)} emb events")
 
 # print(len(data_df), len(emb_df))
 
@@ -345,8 +360,8 @@ if create_plots:
 
     # Creating plots indicating performance of muon removal
 
-    njet_emb = count_n_objects(emb_df, "Jet_eta_")
-    njet_data = count_n_objects(data_df, "Jet_eta_")
+    njet_emb = njet_cleaned_emb
+    njet_data = njet_cleaned_data
     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
     nmu_emb = count_n_objects(emb_df, "eta_")
@@ -375,11 +390,11 @@ if create_plots:
     plt.savefig(os.path.join(match_plot_path, f"n_delta_02.png"))
     plt.close()
 
-print("events with correct muon number:", np.sum(nmu_delta==0))
+# print("events with correct jet number:", np.sum(nmu_delta==0))
 # data_df = data_df.loc[njet_delta==0].reset_index(drop=True)
 # emb_df = emb_df.loc[njet_delta==0].reset_index(drop=True)
 
-# print(f"Number of clean events: {len(data_df)}")
+print(f"Number of clean events: {len(data_df)}")
 
 ########################################################################################################################################################################
 # Matching jets
@@ -387,13 +402,20 @@ print("events with correct muon number:", np.sum(nmu_delta==0))
 
 data_df, emb_df_for_matching = prepare_jet_matching(data_df, emb_df)
 
-match_filter = [
-    # {"col":"dr", "min":-0.05, "max":0.05}
-]
+# match_filter = [
+#     {"col":"dr", "min":0, "max":0.1}
+# ]
 
-dr = calculate_dr(emb_df_for_matching, "jet", filter=match_filter)
+dr = calculate_dr(emb_df_for_matching, "jet", filter=None)
 
 emb_df, jet_id_matched, jet_dr_matched = apply_genmatching(dr.copy(), emb_df, "jet")
+
+# print("jet_match_dr>0.2", np.sum(jet_dr_matched[:,0]>0.2), np.sum(~np.isnan(jet_dr_matched[:,0])))
+# print("jet_match_dr2", np.sum(jet_dr_matched[:,1]>0.2), np.sum(~np.isnan(jet_dr_matched[:,1])))
+# print("jet_match_dr<0.2", np.sum(jet_dr_matched[:,0]<0.2), np.sum(~np.isnan(jet_dr_matched[:,0])))
+# print("jet_match_dr2", np.sum(jet_dr_matched[:,1]<0.2), np.sum(~np.isnan(jet_dr_matched[:,1])))
+# print("jet_match_dr-0.4", np.sum(jet_dr_matched[:,0]>0.4), np.sum(~np.isnan(jet_dr_matched[:,0])))
+# print("jet_match_dr2", np.sum(jet_dr_matched[:,1]>0.4), np.sum(~np.isnan(jet_dr_matched[:,1])))
 
 data_df, emb_df = remove_nonmatches(data_df, emb_df)
 
@@ -409,6 +431,11 @@ if create_plots:
     dphi_2 = subtract_columns(emb_df["Jet_phi_2"], data_df["TJ_phi"], "phi_2")
     deta_2 = subtract_columns(emb_df["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
     dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
+
+    print("jet_unmatch_dr-0.2", np.sum(dr_1>0.2), np.sum(~np.isnan(dr_1)))
+    print("jet_unmatch_dr2", np.sum(dr_2>0.2), np.sum(~np.isnan(dr_2)))
+    # print("jet_unmatch_dr-0.4", np.sum(dr_1>0.4), np.sum(~np.isnan(dr_1)))
+    # print("jet_unmatch_dr2", np.sum(dr_2>0.4), np.sum(~np.isnan(dr_2)))
 
     #dr between muon1|2 data and muon1|2 embedding
     ax = nq_comparison({"Leading jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")

@@ -45,6 +45,16 @@ def calculate_dr(df, mode, filter=None, df2=None):
         n_comp = get_n_occurence(df2, "Jet_eta") # data
         n_target = get_n_occurence(df, "Jet_eta") # emb
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "electron_all":
+        # df: emb, df2: data
+        n_comp = get_n_occurence(df2, "Electron_eta") # data
+        n_target = get_n_occurence(df, "Electron_eta") # emb
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "photon_all":
+        # df: emb, df2: data
+        n_comp = get_n_occurence(df2, "Photon_eta") # data
+        n_target = get_n_occurence(df, "Photon_eta") # emb
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     else:
         raise ValueError("Invalid mode selected")
 
@@ -102,12 +112,26 @@ def calculate_dr(df, mode, filter=None, df2=None):
             comp_phi = "Jet_phi"
             comp_eta = "Jet_eta"
             comp_pt = "Jet_pt"
+        elif mode == "electron_all":
+            master_eta = "Electron_eta"
+            master_phi = "Electron_phi"
+            master_pt = "Electron_pt"
+            comp_phi = "Electron_cp_phi"
+            comp_eta = "Electron_cp_eta"
+            comp_pt = "Electron_cp_pt"
+        elif mode == "photon_all":
+            master_eta = "Photon_eta"
+            master_phi = "Photon_phi"
+            master_pt = "Photon_pt"
+            comp_phi = "Photon_cp_phi"
+            comp_eta = "Photon_cp_eta"
+            comp_pt = "Photon_cp_pt"
             
         for n_m in range(1, n_comp+1):
             if mode == "filter":
                 eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}"], "eta_")
                 phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df[f"{comp_phi}"], "phi_")
-            elif mode == "muon_all" or mode == "jet_all":
+            elif mode.endswith("_all"):
                 eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df2[f"{comp_eta}_{n_m}"], "eta_")
                 phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df2[f"{comp_phi}_{n_m}"], "phi_")
             else:
@@ -300,8 +324,8 @@ def get_closest_muon_data(dr_arr):
 
 
 def remove_muon_jets(df, dr_arr, cut):
-    # # removes those jets that are closer than "value" to a muon
-    counter = 0
+    # removes those jets that are closer than "value" to a muon
+
     for n_j in range(dr_arr.shape[1]):
         for n_m in range(dr_arr.shape[2]):
             subset = dr_arr[:,n_j,n_m]
@@ -310,7 +334,30 @@ def remove_muon_jets(df, dr_arr, cut):
             df.loc[mask, f"Jet_m_{n_j+1}"] = np.nan
             df.loc[mask, f"Jet_phi_{n_j+1}"] = np.nan
             df.loc[mask, f"Jet_pt_{n_j+1}"] = np.nan
-            counter += np.sum(mask)
+
+    # mask = dr_arr[:,0,0] < cut
+    # mask2 = dr_arr[:,0,1] < cut
+    # mask = np.logical_or(mask, mask2)
+
+    # df = df.loc[mask]
+    
+    return df
+
+def remove_non_muon_jets(df, dr_arr, cut):
+    # leaves only muon jets
+    counter = 0
+    mask = dr_arr<cut
+    mask = np.any(mask, axis=2)
+
+    for n_j in range(dr_arr.shape[1]):
+
+        subset = ~mask[:,n_j]
+
+        df.loc[subset, f"Jet_eta_{n_j+1}"] = np.nan
+        df.loc[subset, f"Jet_m_{n_j+1}"] = np.nan
+        df.loc[subset, f"Jet_phi_{n_j+1}"] = np.nan
+        df.loc[subset, f"Jet_pt_{n_j+1}"] = np.nan
+        counter += np.sum(subset)
 
     print(f"removed {counter} jets from {len(df)} events")
 
@@ -321,7 +368,6 @@ def remove_muon_jets(df, dr_arr, cut):
     # df = df.loc[mask]
     
     return df
-
 
 def remove_nonmatches(df1, df2):
     # removes those jets which were supposed to be matched but couldn't for some some reason
@@ -365,6 +411,26 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         phi_cols_emb = [f"phi_{n}" for n in range(1,n_emb+1)]
         phi_cols_data = [f"phi_{n}" for n in range(1,n_data+1)]
         basenames = ["pt", "eta", "phi"]
+    elif mode == "electron_all":
+        n_emb = get_n_occurence(emb_df, "Electron_eta_")
+        n_data = get_n_occurence(data_df, "Electron_eta_")
+        pt_cols_emb = [f"Electron_pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"Electron_pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"Electron_eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"Electron_eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"Electron_phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"Electron_phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["Electron_pt", "Electron_eta", "Electron_phi"]
+    elif mode == "photon_all":
+        n_emb = get_n_occurence(emb_df, "Photon_eta_")
+        n_data = get_n_occurence(data_df, "Photon_eta_")
+        pt_cols_emb = [f"Photon_pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"Photon_pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"Photon_eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"Photon_eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"Photon_phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"Photon_phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["Photon_pt", "Photon_eta", "Photon_phi"]
     else:
         raise ValueError("Invalid mode")
     
