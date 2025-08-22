@@ -10,7 +10,7 @@ from source.helper import get_n_occurence, col_is_expanded
 
 jet_basenames = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_m"]
 
-muon_basenames = ["eta", "phi", "pt", "m", "MuonIsTight", "MuonIsGlobal"]
+muon_basenames = ["Muon_eta", "Muon_phi", "Muon_pt", "Muon_m", "MuonIsTight", "MuonIsMedium", "MuonIsLoose", "MuonIsGlobal"]
 
 electron_basenames = ["Electron_eta", "Electron_phi", "Electron_pt", "Electron_m"]
 
@@ -160,9 +160,9 @@ def quality_cut(df, filter_dict, mode):
         n_objects = get_n_occurence(df, "Jet_eta_")
     elif mode == "muon":
         basenames = muon_basenames
-        n_objects = get_n_occurence(df, "eta_")
+        n_objects = get_n_occurence(df, "Muon_eta_")
     elif mode == "electron":
-        basenames = muon_basenames
+        basenames = electron_basenames
         n_objects = get_n_occurence(df, "Electron_eta_")
     else: 
         raise ValueError("Invalid mode selected")
@@ -203,7 +203,7 @@ def assert_object_validity(df):
 
         if mode == "muon":
             basenames = muon_basenames 
-            n_obj = get_n_occurence(df, "eta_")#number of objects
+            n_obj = get_n_occurence(df, "Muon_eta_")#number of objects
         else:
             basenames = jet_basenames
             n_obj = get_n_occurence(df, "Jet_eta_")#number of objects

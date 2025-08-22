@@ -50,11 +50,10 @@ initialize_dir(match_plot_path)
 data_quantities = [
     {"key":"PuppiMET_pt",       "target":"PuppiMET_pt",     "expand":False},
     {"key":"PuppiMET_phi",      "target":"PuppiMET_phi",    "expand":False},
-    # {"key":"PuppiMET_eta",      "target":"PuppiMET_eta",    "expand":False},
-    {"key":"Muon_phi",          "target":"phi",             "expand":True},
-    {"key":"Muon_pt",           "target":"pt",              "expand":True},
-    {"key":"Muon_eta",          "target":"eta",             "expand":True},
-    {"key":"Muon_mass",         "target":"m",               "expand":True},
+    {"key":"Muon_phi",          "target":"Muon_phi",             "expand":True},
+    {"key":"Muon_pt",           "target":"Muon_pt",              "expand":True},
+    {"key":"Muon_eta",          "target":"Muon_eta",             "expand":True},
+    {"key":"Muon_mass",         "target":"Muon_m",               "expand":True},
     {"key":"Jet_phi",           "target":"Jet_phi",         "expand":True},
     {"key":"Jet_pt",            "target":"Jet_pt",          "expand":True},
     {"key":"Jet_eta",           "target":"Jet_eta",         "expand":True},
@@ -67,7 +66,6 @@ data_quantities = [
     {"key":"Muon_mediumId",     "target":"MuonIsMedium",    "expand":True},
     {"key":"Muon_looseId",      "target":"MuonIsLoose",     "expand":True},
 
-    # {"key":"Electron_charge",   "target":"Electron_charge", "expand":True},
     {"key":"Electron_mass",     "target":"Electron_m",      "expand":True},
     {"key":"Electron_eta",      "target":"Electron_eta",    "expand":True},
     {"key":"Electron_phi",      "target":"Electron_phi",    "expand":True},
@@ -124,9 +122,9 @@ if create_plots:
     njet_data = count_n_objects(data_df, "Jet_eta_")
     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
-    nmu_emb = count_n_objects(emb_df, "eta_")
-    nmu_data = count_n_objects(data_df, "eta_")
-    max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+    nmu_emb = count_n_objects(emb_df, "Muon_eta_")
+    nmu_data = count_n_objects(data_df, "Muon_eta_")
+    max_nmu = max([get_n_occurence(data_df, "Muon_eta_"), get_n_occurence(emb_df, "Muon_eta_")])
 
     njet_delta = njet_data - njet_emb
     nmu_delta = nmu_data - nmu_emb
@@ -173,7 +171,7 @@ photon_filters = [
     # {"col":"Photon_pt",  "min":5,  "max":None},
 ]
 muon_filters = [
-    {"col":"pt",  "min":8,  "max":None},
+    {"col":"Muon_pt",  "min":8,  "max":None},
     {"col":"MuonIsGlobal",  "min":0.5,  "max":None},
     {"col":"MuonIsMedium",  "min":0.5,  "max":None}
     # {"col":"MuonIsLoose",  "min":0.5,  "max":None}
@@ -189,11 +187,11 @@ data_df = quality_cut(data_df, muon_filters, "electron")
 emb_df = quality_cut(emb_df, muon_filters, "electron")
 
 data_df = compactify_objects(data_df, get_jet_basenames(), get_n_occurence(data_df, "Jet_eta_"))
-data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "eta_"))
+data_df = compactify_objects(data_df, get_muon_basenames(), get_n_occurence(data_df, "Muon_eta_"))
 data_df = compactify_objects(data_df, get_electron_basenames(), get_n_occurence(data_df, "Electron_eta_"))
 
 emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df, "Jet_eta_"))
-emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
+emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "Muon_eta_"))
 emb_df = compactify_objects(emb_df, get_electron_basenames(), get_n_occurence(emb_df, "Electron_eta_"))
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
@@ -203,8 +201,8 @@ verify_events(data_df, emb_df)
 print(f"Quality cuts applied\n\tLength dataset:\t {len(emb_df)} events")
 
 
-data_df = require_min_n(data_df, "eta_", 2)
-emb_df = require_min_n(emb_df, "eta_", 2)
+data_df = require_min_n(data_df, "Muon_eta_", 2)
+emb_df = require_min_n(emb_df, "Muon_eta_", 2)
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 verify_events(data_df, emb_df)
@@ -218,9 +216,9 @@ if create_plots:
     njet_data = count_n_objects(data_df, "Jet_eta_")
     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
-    nmu_emb = count_n_objects(emb_df, "eta_")
-    nmu_data = count_n_objects(data_df, "eta_")
-    max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+    nmu_emb = count_n_objects(emb_df, "Muon_eta_")
+    nmu_data = count_n_objects(data_df, "Muon_eta_")
+    max_nmu = max([get_n_occurence(data_df, "Muon_eta_"), get_n_occurence(emb_df, "Muon_eta_")])
 
     njet_delta = njet_data - njet_emb
     nmu_delta = nmu_data - nmu_emb
@@ -267,11 +265,11 @@ print("Genmatching applied")
 
 # Creating plots indicating performance of matching
 if create_plots:
-    dphi_1 = subtract_columns(emb_df["phi_1"], data_df["phi_1"], "phi_1")
-    deta_1 = subtract_columns(emb_df["eta_1"], data_df["eta_1"], "eta_1")
+    dphi_1 = subtract_columns(emb_df["Muon_phi_1"], data_df["Muon_phi_1"], "Muon_phi_1")
+    deta_1 = subtract_columns(emb_df["Muon_eta_1"], data_df["Muon_eta_1"], "Muon_eta_1")
     dr_1 = np.sqrt(np.square(dphi_1) + np.square(deta_1))
-    dphi_2 = subtract_columns(emb_df["phi_2"], data_df["phi_2"], "phi_2")
-    deta_2 = subtract_columns(emb_df["eta_2"], data_df["eta_2"], "eta_2")
+    dphi_2 = subtract_columns(emb_df["Muon_phi_2"], data_df["Muon_phi_2"], "Muon_phi_2")
+    deta_2 = subtract_columns(emb_df["Muon_eta_2"], data_df["Muon_eta_2"], "Muon_eta_2")
     dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
     #dr between muon1|2 data and muon1|2 embedding
@@ -375,9 +373,9 @@ if create_plots:
     njet_data = njet_cleaned_data
     max_njet = max([get_n_occurence(data_df, "Jet_eta_"), get_n_occurence(emb_df, "Jet_eta_")])
 
-    nmu_emb = count_n_objects(emb_df, "eta_")
-    nmu_data = count_n_objects(data_df, "eta_")
-    max_nmu = max([get_n_occurence(data_df, "eta_"), get_n_occurence(emb_df, "eta_")])
+    nmu_emb = count_n_objects(emb_df, "Muon_eta_")
+    nmu_data = count_n_objects(data_df, "Muon_eta_")
+    max_nmu = max([get_n_occurence(data_df, "Muon_eta_"), get_n_occurence(emb_df, "Muon_eta_")])
 
     njet_delta = njet_data - njet_emb
     nmu_delta = nmu_data - nmu_emb

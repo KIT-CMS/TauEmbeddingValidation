@@ -5,16 +5,6 @@ import numpy as np
 from source.helper import subtract_columns, get_n_occurence
 from source.importer import compactify_objects, get_jet_basenames, get_muon_basenames
 
-filter_list = [
-    {"col":"dr", "min":0, "max":0.01},
-    {"col":"pt", "min":8, "max":np.inf},
-    {"col":"eta", "min":-2.5, "max":2.5},
-    # {"col":"pt_ratio", "min":0.75, "max":1.25}
-]
-
-def get_filter_list():
-    return filter_list
-
 
 
 #following code is for genmatching
@@ -25,7 +15,7 @@ def calculate_dr(df, mode, filter=None, df2=None):
     # i would suggest that instead of df and df2 dicts such as {"eta":[[values], [values]], "phi":[[values], [values]]} are given as argument for both master and target
     # thereby the whole naming issues are no longer a problem and the function is more easily readable
     if mode == "muon":
-        n_comp = get_n_occurence(df, "eta")
+        n_comp = get_n_occurence(df, "Muon_eta")
         n_target = 2
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "jet":
@@ -45,8 +35,8 @@ def calculate_dr(df, mode, filter=None, df2=None):
         n_target = get_n_occurence(df, "Jet_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "muon_all":
-        n_comp = get_n_occurence(df2, "eta")
-        n_target = get_n_occurence(df, "eta")
+        n_comp = get_n_occurence(df2, "Muon_eta")
+        n_target = get_n_occurence(df, "Muon_eta")
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "jet_all":
         # df: emb, df2: data
@@ -70,9 +60,9 @@ def calculate_dr(df, mode, filter=None, df2=None):
     for n in range(1, n_target+1):
         #if dr should be calculated between muon, the columns to be used are different from the columns in the jet case. the following clauses assign the names of the columns based on the mode. 
         if mode=="muon":
-            comp_phi = "phi"#this is the name of the columns that the 2 relevant muons are being compared to (simply all muon columns)
-            comp_eta = "eta"
-            comp_pt = "pt"
+            comp_phi = "Muon_phi"#this is the name of the columns that the 2 relevant muons are being compared to (simply all muon columns)
+            comp_eta = "Muon_eta"
+            comp_pt = "Muon_pt"
             if n == 1:
                 master_eta = "LM_eta"#first comparing to leading muon
                 master_phi = "LM_phi"
@@ -131,12 +121,12 @@ def calculate_dr(df, mode, filter=None, df2=None):
                 comp_pt = "TM_pt"
         # emb auf axis=1, data auf axis=2
         elif mode == "muon_all":
-            master_eta = "eta"
-            master_phi = "phi"
-            master_pt = "pt"
-            comp_phi = "phi"
-            comp_eta = "eta"
-            comp_pt = "pt"
+            master_eta = "Muon_eta"
+            master_phi = "Muon_phi"
+            master_pt = "Muon_pt"
+            comp_phi = "Muon_phi"
+            comp_eta = "Muon_eta"
+            comp_pt = "Muon_pt"
         elif mode == "jet_all":
             master_eta = "Jet_eta"
             master_phi = "Jet_phi"
@@ -220,10 +210,10 @@ def apply_genmatching(dr_arr, df, mode):
     #switches data for those entries where an emb muon closer to the original one is present
 
     if mode == "muon":
-        pt_source = "pt"
-        eta_source = "eta"
-        phi_source = "phi"
-        m_source = "m"
+        pt_source = "Muon_pt"
+        eta_source = "Muon_eta"
+        phi_source = "Muon_phi"
+        m_source = "Muon_m"
         pt_target_1 = "LM_pt"
         pt_target_2 = "TM_pt"
         eta_target_1 = "LM_eta"
@@ -479,15 +469,15 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         phi_cols_data = [f"Jet_phi_{n}" for n in range(1,n_data+1)]
         basenames = ["Jet_pt", "Jet_eta", "Jet_phi"]
     elif mode == "muon_all":
-        n_emb = get_n_occurence(emb_df, "eta_")
-        n_data = get_n_occurence(data_df, "eta_")
-        pt_cols_emb = [f"pt_{n}" for n in range(1,n_emb+1)]
-        pt_cols_data = [f"pt_{n}" for n in range(1,n_data+1)]
-        eta_cols_emb = [f"eta_{n}" for n in range(1,n_emb+1)]
-        eta_cols_data = [f"eta_{n}" for n in range(1,n_data+1)]
-        phi_cols_emb = [f"phi_{n}" for n in range(1,n_emb+1)]
-        phi_cols_data = [f"phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["pt", "eta", "phi"]
+        n_emb = get_n_occurence(emb_df, "Muon_eta_")
+        n_data = get_n_occurence(data_df, "Muon_eta_")
+        pt_cols_emb = [f"Muon_pt_{n}" for n in range(1,n_emb+1)]
+        pt_cols_data = [f"Muon_pt_{n}" for n in range(1,n_data+1)]
+        eta_cols_emb = [f"Muon_eta_{n}" for n in range(1,n_emb+1)]
+        eta_cols_data = [f"Muon_eta_{n}" for n in range(1,n_data+1)]
+        phi_cols_emb = [f"Muon_phi_{n}" for n in range(1,n_emb+1)]
+        phi_cols_data = [f"Muon_phi_{n}" for n in range(1,n_data+1)]
+        basenames = ["Muon_pt", "Muon_eta", "Muon_phi"]
     elif mode == "electron_all":
         n_emb = get_n_occurence(emb_df, "Electron_eta_")
         n_data = get_n_occurence(data_df, "Electron_eta_")
