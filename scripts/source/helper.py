@@ -65,31 +65,73 @@ def copy_column_set(from_df, to_df, basename):
 
     return to_df
 
-def prepare_jet_matching(data, emb):
+# def prepare_jet_matching(data, emb):
 
-    data["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
-    data["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
-    data["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
-    data["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
-    data["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
-    data["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
-    data["LJ_m"] = data["Jet_m_1"].copy(deep=True)
-    data["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+#     data["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
+#     data["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
+#     data["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
+#     data["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
+#     data["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
+#     data["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
+#     data["LJ_m"] = data["Jet_m_1"].copy(deep=True)
+#     data["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+
+#     emb_for_matching = emb[["run", "lumi", "event"]].copy(deep=True)
+
+#     for column in emb.columns:
+#         if column.startswith("Jet_"):
+#             emb_for_matching[column] = emb[column].copy(deep=True)
+
+#     emb_for_matching["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
+#     emb_for_matching["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
+#     emb_for_matching["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
+#     emb_for_matching["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
+#     emb_for_matching["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
+#     emb_for_matching["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
+#     emb_for_matching["LJ_m"] = data["Jet_m_1"].copy(deep=True)
+#     emb_for_matching["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+
+#     return data, emb_for_matching
+
+
+def prepare_matching(data, emb, mode):
+    if mode == "electron":
+        short = "E"
+        basename = "Electron"
+    elif mode == "photon":
+        short = "P"
+        basename = "Photon"
+    elif mode == "jet":
+        short = "J"
+        basename = "Jet"
+
+    data[f"L{short}_pt"] = data[f"{basename}_pt_1"].copy(deep=True)
+    data[f"T{short}_pt"] = data[f"{basename}_pt_2"].copy(deep=True)
+    data[f"L{short}_eta"] = data[f"{basename}_eta_1"].copy(deep=True)
+    data[f"T{short}_eta"] = data[f"{basename}_eta_2"].copy(deep=True)
+    data[f"L{short}_phi"] = data[f"{basename}_phi_1"].copy(deep=True)
+    data[f"T{short}_phi"] = data[f"{basename}_phi_2"].copy(deep=True)
+
+    if mode != "photon":
+        data[f"L{short}_m"] = data[f"{basename}_m_1"].copy(deep=True)
+        data[f"T{short}_m"] = data[f"{basename}_m_2"].copy(deep=True)
 
     emb_for_matching = emb[["run", "lumi", "event"]].copy(deep=True)
 
     for column in emb.columns:
-        if column.startswith("Jet_"):
+        if column.startswith(basename):
             emb_for_matching[column] = emb[column].copy(deep=True)
 
-    emb_for_matching["LJ_pt"] = data["Jet_pt_1"].copy(deep=True)
-    emb_for_matching["TJ_pt"] = data["Jet_pt_2"].copy(deep=True)
-    emb_for_matching["LJ_eta"] = data["Jet_eta_1"].copy(deep=True)
-    emb_for_matching["TJ_eta"] = data["Jet_eta_2"].copy(deep=True)
-    emb_for_matching["LJ_phi"] = data["Jet_phi_1"].copy(deep=True)
-    emb_for_matching["TJ_phi"] = data["Jet_phi_2"].copy(deep=True)
-    emb_for_matching["LJ_m"] = data["Jet_m_1"].copy(deep=True)
-    emb_for_matching["TJ_m"] = data["Jet_m_2"].copy(deep=True)
+    emb_for_matching[f"L{short}_pt"] = data[f"{basename}_pt_1"].copy(deep=True)
+    emb_for_matching[f"T{short}_pt"] = data[f"{basename}_pt_2"].copy(deep=True)
+    emb_for_matching[f"L{short}_eta"] = data[f"{basename}_eta_1"].copy(deep=True)
+    emb_for_matching[f"T{short}_eta"] = data[f"{basename}_eta_2"].copy(deep=True)
+    emb_for_matching[f"L{short}_phi"] = data[f"{basename}_phi_1"].copy(deep=True)
+    emb_for_matching[f"T{short}_phi"] = data[f"{basename}_phi_2"].copy(deep=True)
+
+    if mode != "photon":
+        emb_for_matching[f"L{short}_m"] = data[f"{basename}_m_1"].copy(deep=True)
+        emb_for_matching[f"T{short}_m"] = data[f"{basename}_m_2"].copy(deep=True)
 
     return data, emb_for_matching
 

@@ -32,6 +32,14 @@ def calculate_dr(df, mode, filter=None, df2=None):
         n_comp = get_n_occurence(df, "Jet_eta")
         n_target = 2
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "electron":
+        n_comp = get_n_occurence(df, "Electron_eta")
+        n_target = 2
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
+    elif mode == "photon":
+        n_comp = get_n_occurence(df, "Photon_eta")
+        n_target = 2
+        dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "filter":
         n_comp = 2
         n_target = get_n_occurence(df, "Jet_eta")
@@ -85,6 +93,30 @@ def calculate_dr(df, mode, filter=None, df2=None):
                 master_eta = "TJ_eta"#then comparing the second jet
                 master_phi = "TJ_phi"
                 master_pt = "TJ_pt"
+        elif mode=="electron":
+            comp_phi = "Electron_phi"
+            comp_eta = "Electron_eta"
+            comp_pt = "Electron_pt"
+            if n == 1:
+                master_eta = "LE_eta"#comparing the first jet
+                master_phi = "LE_phi"
+                master_pt = "LE_pt"
+            elif n == 2:
+                master_eta = "TE_eta"#then comparing the second jet
+                master_phi = "TE_phi"
+                master_pt = "TE_pt"
+        elif mode=="photon":
+            comp_phi = "Photon_phi"
+            comp_eta = "Photon_eta"
+            comp_pt = "Photon_pt"
+            if n == 1:
+                master_eta = "LP_eta"#comparing the first jet
+                master_phi = "LP_phi"
+                master_pt = "LP_pt"
+            elif n == 2:
+                master_eta = "TP_eta"#then comparing the second jet
+                master_phi = "TP_phi"
+                master_pt = "TP_pt"
         elif mode=="filter":
             master_eta = "Jet_eta"
             master_phi = "Jet_phi"
@@ -213,6 +245,32 @@ def apply_genmatching(dr_arr, df, mode):
         phi_target_2 = "TJ_phi"
         m_target_1 = "LJ_m"
         m_target_2 = "TJ_m"
+    elif mode == "electron":
+        pt_source = "Electron_pt"
+        eta_source = "Electron_eta"
+        phi_source = "Electron_phi"
+        m_source = "Electron_m"
+        pt_target_1 = "LE_pt"
+        pt_target_2 = "TE_pt"
+        eta_target_1 = "LE_eta"
+        eta_target_2 = "TE_eta"
+        phi_target_1 = "LE_phi"
+        phi_target_2 = "TE_phi"
+        m_target_1 = "LE_m"
+        m_target_2 = "TE_m"
+    elif mode == "photon":
+        pt_source = "Photon_pt"
+        eta_source = "Photon_eta"
+        phi_source = "Photon_phi"
+        m_source = "Photon_m"
+        pt_target_1 = "LP_pt"
+        pt_target_2 = "TP_pt"
+        eta_target_1 = "LP_eta"
+        eta_target_2 = "TP_eta"
+        phi_target_1 = "LP_phi"
+        phi_target_2 = "TP_phi"
+        # m_target_1 = "LP_m"
+        # m_target_2 = "TP_m"
     else:
         raise ValueError("invalid mode selected")
     
@@ -223,8 +281,9 @@ def apply_genmatching(dr_arr, df, mode):
     tm_phi = np.full(target_length, fill_value=np.nan)
     lm_eta = np.full(target_length, fill_value=np.nan)
     tm_eta = np.full(target_length, fill_value=np.nan)
-    lm_m = np.full(target_length, fill_value=np.nan)
-    tm_m = np.full(target_length, fill_value=np.nan)
+    if not mode =="photon":
+        lm_m = np.full(target_length, fill_value=np.nan)
+        tm_m = np.full(target_length, fill_value=np.nan)
 
     muon_best_fit = np.full((target_length,2), fill_value=np.nan)
     dr_min = np.full((target_length,2), fill_value=np.nan)
@@ -261,14 +320,16 @@ def apply_genmatching(dr_arr, df, mode):
             lm_pt[n_event] = event[f"{pt_source}_{muon1_id+1}"]
             lm_eta[n_event] = event[f"{eta_source}_{muon1_id+1}"]
             lm_phi[n_event] = event[f"{phi_source}_{muon1_id+1}"]
-            lm_m[n_event] = event[f"{m_source}_{muon1_id+1}"]
+            if not mode =="photon":
+                lm_m[n_event] = event[f"{m_source}_{muon1_id+1}"]
             muon_best_fit[n_event, 0] = muon1_id
             dr_min[n_event, 0] = distances2[0, muon1_id]
         else:
             lm_pt[n_event] = np.nan
             lm_eta[n_event] = np.nan
             lm_phi[n_event] = np.nan
-            lm_m[n_event] = np.nan
+            if not mode =="photon":
+                lm_m[n_event] = np.nan
             muon_best_fit[n_event, 0] = np.nan
             dr_min[n_event, 0] = np.nan
 
@@ -277,14 +338,16 @@ def apply_genmatching(dr_arr, df, mode):
             tm_pt[n_event] = event[f"{pt_source}_{muon2_id+1}"]
             tm_eta[n_event] = event[f"{eta_source}_{muon2_id+1}"]
             tm_phi[n_event] = event[f"{phi_source}_{muon2_id+1}"]
-            tm_m[n_event] = event[f"{m_source}_{muon2_id+1}"]
+            if not mode =="photon":
+                tm_m[n_event] = event[f"{m_source}_{muon2_id+1}"]
             muon_best_fit[n_event, 1] = muon2_id
             dr_min[n_event, 1] = distances2[1, muon2_id]
         else:
             tm_pt[n_event] = np.nan
             tm_eta[n_event] = np.nan
             tm_phi[n_event] = np.nan
-            tm_m[n_event] = np.nan
+            if not mode =="photon":
+                tm_m[n_event] = np.nan
 
     matched_df = pd.DataFrame({
         f"{pt_target_1}": pd.Series(lm_pt),
@@ -293,10 +356,16 @@ def apply_genmatching(dr_arr, df, mode):
         f"{eta_target_2}": pd.Series(tm_eta),
         f"{phi_target_1}": pd.Series(lm_phi),
         f"{phi_target_2}": pd.Series(tm_phi),
-        f"{m_target_1}": pd.Series(lm_m),
-        f"{m_target_2}": pd.Series(tm_m)
+        # f"{m_target_1}": pd.Series(lm_m),
+        # f"{m_target_2}": pd.Series(tm_m)
     })
     df = pd.concat([df, matched_df], axis=1)
+    if mode != "photon":
+        m_df = pd.DataFrame({
+            f"{m_target_1}": pd.Series(lm_m),
+            f"{m_target_2}": pd.Series(tm_m)
+        })
+        df = pd.concat([df, m_df],  axis=1)
     # df[[pt_target_1, pt_target_2, eta_target_1, eta_target_2, phi_target_1, phi_target_2, m_target_1, m_target_2]] = matched_df
     return df, muon_best_fit, dr_min
 
@@ -369,22 +438,30 @@ def remove_non_muon_jets(df, dr_arr, cut):
     
     return df
 
-def remove_nonmatches(df1, df2):
+def remove_nonmatches(df1, df2, mode):
     # removes those jets which were supposed to be matched but couldn't for some some reason
+    if mode == "jet":
+        basename = "J"
+    elif mode == "electron":
+        basename = "E"
+    elif mode == "photon":
+        basename = "P"
+    else:
+        raise ValueError
 
-    mask1 = df1["LJ_eta"].isna()
-    mask2 = df2["LJ_eta"].isna()
+    mask1 = df1[f"L{basename}_eta"].isna()
+    mask2 = df2[f"L{basename}_eta"].isna()
     mask = np.logical_or(mask1, mask2)
 
-    df1.loc[mask, ["LJ_pt", "LJ_eta", "LJ_phi", "LJ_m"]] = np.nan
-    df2.loc[mask, ["LJ_pt", "LJ_eta", "LJ_phi", "LJ_m"]] = np.nan
+    df1.loc[mask, [f"L{basename}_pt", f"L{basename}_eta", f"L{basename}_phi", f"L{basename}_m"]] = np.nan
+    df2.loc[mask, [f"L{basename}_pt", f"L{basename}_eta", f"L{basename}_phi", f"L{basename}_m"]] = np.nan
 
-    mask1 = df1["TJ_eta"].isna()
-    mask2 = df2["TJ_eta"].isna()
+    mask1 = df1[f"T{basename}_eta"].isna()
+    mask2 = df2[f"T{basename}_eta"].isna()
     mask = np.logical_or(mask1, mask2)
 
-    df1.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan
-    df2.loc[mask, ["TJ_pt", "TJ_eta", "TJ_phi", "TJ_m"]] = np.nan
+    df1.loc[mask, [f"T{basename}_pt", f"T{basename}_eta", f"T{basename}_phi", f"T{basename}_m"]] = np.nan
+    df2.loc[mask, [f"T{basename}_pt", f"T{basename}_eta", f"T{basename}_phi", f"T{basename}_m"]] = np.nan
 
     return df1, df2
 
