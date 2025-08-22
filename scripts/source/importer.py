@@ -12,11 +12,22 @@ jet_basenames = ["Jet_eta", "Jet_phi", "Jet_pt", "Jet_m"]
 
 muon_basenames = ["eta", "phi", "pt", "m", "MuonIsTight", "MuonIsGlobal"]
 
+electron_basenames = ["Electron_eta", "Electron_phi", "Electron_pt", "Electron_m"]
+
+photon_basenames = ["Photon_eta", "Photon_phi", "Photon_pt"]
+
 def get_jet_basenames():
     return jet_basenames
 
 def get_muon_basenames():
     return muon_basenames
+
+def get_electron_basenames():
+    return electron_basenames
+
+def get_photon_basenames():
+    return photon_basenames
+
 
 def nanoaod_to_dataframe(files, quantities):
     #imports all files in files and concatenates them
@@ -150,6 +161,9 @@ def quality_cut(df, filter_dict, mode):
     elif mode == "muon":
         basenames = muon_basenames
         n_objects = get_n_occurence(df, "eta_")
+    elif mode == "electron":
+        basenames = muon_basenames
+        n_objects = get_n_occurence(df, "Electron_eta_")
     else: 
         raise ValueError("Invalid mode selected")
     
