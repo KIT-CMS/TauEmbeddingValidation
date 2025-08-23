@@ -281,13 +281,13 @@ if create_plots:
     # print(np.sum(muon_id_matched[:,0][mask_temp]==1))
     # print(np.sum(muon_id_matched[:,0][mask_temp]>1))
 
-    ax = nq_comparison({"Leading µ":dr_1, "Trailing µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
+    ax = nq_comparison({"Leading µ":dr_1, "Subleading µ":dr_2}, 30, r"$\delta r_\text{µ, unmatched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
-    ax = nq_comparison({"Leading µ":dr_matched[:,0], "Trailing µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
+    ax = nq_comparison({"Leading µ":dr_matched[:,0], "Subleading µ":dr_matched[:,1]}, 30, r"$\delta r_\text{µ, matched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
     plt.close()
@@ -447,13 +447,13 @@ if create_plots:
     # print("jet_unmatch_dr2", np.sum(dr_2>0.4), np.sum(~np.isnan(dr_2)))
 
     #dr between muon1|2 data and muon1|2 embedding
-    ax = nq_comparison({"Leading jet":dr_1, "Trailing jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
+    ax = nq_comparison({"Leading jet":dr_1, "Subleading jet":dr_2}, 30, r"$\delta r_\text{Jet, unmatched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
-    ax = nq_comparison({"Leading jet":jet_dr_matched[:,0], "Trailing jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
+    ax = nq_comparison({"Leading jet":jet_dr_matched[:,0], "Subleading jet":jet_dr_matched[:,1]}, 30, r"$\delta r_\text{Jet, matched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
     plt.close()
@@ -501,13 +501,13 @@ if create_plots:
     print("Electron_unmatch_dr2", np.sum(dr_2>0.2), np.sum(~np.isnan(dr_2)))
 
     #dr between muon1|2 data and muon1|2 embedding
-    ax = nq_comparison({"Leading electron":dr_1, "Trailing electron":dr_2}, 30, r"$\delta r_\text{Electron, unmatched}$")
+    ax = nq_comparison({"Leading electron":dr_1, "Subleading electron":dr_2}, 30, r"$\delta r_\text{Electron, unmatched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"electron_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
-    ax = nq_comparison({"Leading electron":electron_dr_matched[:,0], "Trailing electron":electron_dr_matched[:,1]}, 30, r"$\delta r_\text{Electron, matched}$")
+    ax = nq_comparison({"Leading electron":electron_dr_matched[:,0], "Subleading electron":electron_dr_matched[:,1]}, 30, r"$\delta r_\text{Electron, matched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"electron_dr_matched.png"))
     plt.close()
@@ -555,13 +555,13 @@ if create_plots:
     print("Photon_unmatch_dr2", np.sum(dr_2>0.2), np.sum(~np.isnan(dr_2)))
 
     #dr between muon1|2 data and muon1|2 embedding
-    ax = nq_comparison({"Leading photon":dr_1, "Trailing photon":dr_2}, 30, r"$\delta r_\text{photon, unmatched}$")
+    ax = nq_comparison({"Leading photon":dr_1, "Subleading photon":dr_2}, 30, r"$\delta r_\text{photon, unmatched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"photon_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
-    ax = nq_comparison({"Leading photon":electron_dr_matched[:,0], "Trailing photon":electron_dr_matched[:,1]}, 30, r"$\delta r_\text{Photon, matched}$")
+    ax = nq_comparison({"Leading photon":electron_dr_matched[:,0], "Subleading photon":electron_dr_matched[:,1]}, 30, r"$\delta r_\text{Photon, matched}$")
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"photon_dr_matched.png"))
     plt.close()
