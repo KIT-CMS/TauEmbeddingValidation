@@ -134,12 +134,12 @@ def generate_pt_vis(pt_1, eta_1, phi_1, m_1, pt_2, eta_2, phi_2, m_2):
     return pt_vis
 
 
-def initialize_dir(base_path: str, subfolders: list[str]=None):
+def initialize_dir(base_path: str, subfolders: list[str]=None, purge=True):
 
     base_dir = Path(base_path)
 
     # Delete the folder if it exists
-    if base_dir.exists():
+    if base_dir.exists() and purge:
         shutil.rmtree(base_dir)
 
     # Recreate the base directory
