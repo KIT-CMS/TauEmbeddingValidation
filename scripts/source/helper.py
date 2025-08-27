@@ -175,7 +175,7 @@ def copy_columns_from_to(from_df, to_df, columns):
     cols_to_copy = from_df[columns].copy(deep=True)
     to_df[columns] = cols_to_copy
 
-    return from_df, to_df
+    return to_df
 
 
 def set_working_dir():
