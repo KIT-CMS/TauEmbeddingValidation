@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 import vector
+from matplotlib.colors import LogNorm
 
 plt.style.use(hep.style.CMS)
 
@@ -54,11 +55,11 @@ def control_plot(data_col, emb_col, bins, title, dy=None):
     rel_diff = divide_arrays(data_hist, emb_hist)
     rel_diff_error = divide_arrays(data_errors, emb_hist)
 
-    # print("Stat. errors", np.nanmean(rel_diff_error), np.nanstd(rel_diff_error))
-    # print("Rel. dev", np.nanmin(rel_diff_error), np.nanmax(rel_diff_error))
+    print("Stat. errors", np.nanmean(rel_diff_error), np.nanstd(rel_diff_error))
+    print("Rel. dev", np.nanmin(rel_diff_error), np.nanmax(rel_diff_error))
 
-    # print("Rel. value", np.nanmean(rel_diff), np.nanstd(rel_diff))
-    # print("Rel. dev", np.nanmin(rel_diff), np.nanmax(rel_diff))
+    print("Rel. value", np.nanmean(rel_diff), np.nanstd(rel_diff))
+    print("Rel. dev", np.nanmin(rel_diff), np.nanmax(rel_diff))
 
     ax_temp.errorbar(bins_data_center, rel_diff, xerr=np.diff(edges)/2, yerr=rel_diff_error, label="observed", c="black", fmt="o", linestyle="none", markersize=8)
     ax_temp.bar(bins_data_center, 2*rel_diff_error, width=np.diff(edges), bottom=1-rel_diff_error, color="grey", alpha=0.5, edgecolor="none")
@@ -191,6 +192,33 @@ def x_vs_y(x, y, xlabel, ylabel):
 
     return ax
 
+def hist_2d(x, y, xlabel, ylabel, bins, log):
+    #plots x as funciton of y
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    fig.set_figheight(14)
+    fig.set_figwidth(14)
+    
+    if log:
+        # max = np.amax([np.amax(x), np.amax(y)])
+        # norm = LogNorm(vmin=0, vmax=max)
+        norm = LogNorm()
+        vals = ax.hist2d(x, y, bins=bins, norm=norm)
+    else:
+        vals = ax.hist2d(x, y, bins=bins)
+
+    fig.colorbar(vals[3], ax=ax)
+
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    hep.cms.label("Private work (data/simulation)", data=True, loc=0, year="2022G", com=13.6)#, lumi=59.8
+
+    # legend = plt.legend(loc="upper right", markerfirst=False)
+    # for handle in legend.get_patches():
+    #     handle.set_edgecolor("black")  # Add black border to legend symbol
+    #     handle.set_linewidth(1.5)  # Make edge visible
+
+    return ax
+
 
 def nq_comparison(q_dict, bins, title, data=None):
     #function for creating plots with variable amount of dataset
@@ -205,7 +233,11 @@ def nq_comparison(q_dict, bins, title, data=None):
         col = q_dict[label]
 
         #plotting corrected embeddign histogram
-        _, bins, _ = ax.hist(col, bins, label=label, histtype="step", linewidth=2)
+        n, bins, patches = ax.hist(col, bins, label=label, histtype="step", linewidth=2)
+        bins_data_center = get_bin_center(bins)
+        errors = np.sqrt(n)
+
+        ax.bar(bins_data_center, 2*errors, width=np.diff(bins), bottom=n-errors, color=patches[0].get_edgecolor(), alpha=0.3, edgecolor="none")
 
     if type(data)!=type(None):
         data_hist, _ = np.histogram(data, bins)

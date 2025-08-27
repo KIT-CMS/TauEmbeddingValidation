@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from source.plotting import x_vs_y
+from source.plotting import x_vs_y, hist_2d
 from source.importer import initialize_dir
 from source.helper import verify_events, set_working_dir
 
@@ -139,78 +139,78 @@ plotting_instructions = [
         "title":r"$p_\text{T, µ2}$/ GeV",  
         "ylog":False,    
         "xlog":False},
-    {"col":"LE_eta",   
-        "min":-3,
-        "max":3,                
-        "title":r"Leading electron $\eta$",             
-        "ylog":False,    
-        "xlog":False},  
-    {"col":"LE_phi",   
-        "min":-3.5,
-        "max":3.5,              
-        "title":r"Leading electron $\phi$",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"LE_pt",     
-        "min":0,
-        "max":150,                
-        "title":r"Leading electron $p_\text{T}$/ GeV",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"TE_eta",   
-        "min":-3,
-        "max":3,                
-        "title":r"Subleading electron $\eta$",             
-        "ylog":False,    
-        "xlog":False},  
-    {"col":"TE_phi",   
-        "min":-3.5,
-        "max":3.5,              
-        "title":r"Subleading electron $\phi$",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"TE_pt",     
-        "min":0,
-        "max":150,                
-        "title":r"Subleading electron $p_\text{T}$/ GeV",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"LP_eta",   
-        "min":-3,
-        "max":3,                
-        "title":r"Leading photon $\eta$",             
-        "ylog":False,    
-        "xlog":False},  
-    {"col":"LP_phi",   
-        "min":-3.5,
-        "max":3.5,              
-        "title":r"Leading photon $\phi$",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"LP_pt",     
-        "min":0,
-        "max":200,                
-        "title":r"$Leading photon p_\text{T}$/ GeV",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"TP_eta",   
-        "min":-3,
-        "max":3,                
-        "title":r"Subleading photon $\eta$",             
-        "ylog":False,    
-        "xlog":False},  
-    {"col":"TP_phi",   
-        "min":-3.5,
-        "max":3.5,              
-        "title":r"Subleading photon $\phi$",  
-        "ylog":False,    
-        "xlog":False},
-    {"col":"TP_pt",     
-        "min":0,
-        "max":80,                
-        "title":r"Subleading photon $p_\text{T}$/ GeV",  
-        "ylog":False,    
-        "xlog":False},
+    # {"col":"LE_eta",   
+    #     "min":-3,
+    #     "max":3,                
+    #     "title":r"Leading electron $\eta$",             
+    #     "ylog":False,    
+    #     "xlog":False},  
+    # {"col":"LE_phi",   
+    #     "min":-3.5,
+    #     "max":3.5,              
+    #     "title":r"Leading electron $\phi$",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"LE_pt",     
+    #     "min":0,
+    #     "max":150,                
+    #     "title":r"Leading electron $p_\text{T}$/ GeV",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"TE_eta",   
+    #     "min":-3,
+    #     "max":3,                
+    #     "title":r"Subleading electron $\eta$",             
+    #     "ylog":False,    
+    #     "xlog":False},  
+    # {"col":"TE_phi",   
+    #     "min":-3.5,
+    #     "max":3.5,              
+    #     "title":r"Subleading electron $\phi$",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"TE_pt",     
+    #     "min":0,
+    #     "max":150,                
+    #     "title":r"Subleading electron $p_\text{T}$/ GeV",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"LP_eta",   
+    #     "min":-3,
+    #     "max":3,                
+    #     "title":r"Leading photon $\eta$",             
+    #     "ylog":False,    
+    #     "xlog":False},  
+    # {"col":"LP_phi",   
+    #     "min":-3.5,
+    #     "max":3.5,              
+    #     "title":r"Leading photon $\phi$",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"LP_pt",     
+    #     "min":0,
+    #     "max":200,                
+    #     "title":r"$Leading photon p_\text{T}$/ GeV",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"TP_eta",   
+    #     "min":-3,
+    #     "max":3,                
+    #     "title":r"Subleading photon $\eta$",             
+    #     "ylog":False,    
+    #     "xlog":False},  
+    # {"col":"TP_phi",   
+    #     "min":-3.5,
+    #     "max":3.5,              
+    #     "title":r"Subleading photon $\phi$",  
+    #     "ylog":False,    
+    #     "xlog":False},
+    # {"col":"TP_pt",     
+    #     "min":0,
+    #     "max":80,                
+    #     "title":r"Subleading photon $p_\text{T}$/ GeV",  
+    #     "ylog":False,    
+    #     "xlog":False},
 ]
 
 ########################################################################################################################################################################
@@ -229,6 +229,9 @@ print("Data loaded and verified")
 # Basic control plots comparing data and matched embedding
 ########################################################################################################################################################################
 
+bins = 100
+log = True
+
 for quantity in plotting_instructions:
     col = quantity["col"]
     x = data_df[col]
@@ -237,19 +240,20 @@ for quantity in plotting_instructions:
     ylabel = quantity["title"] + " (emb)"
     min_lim = quantity["min"]
     max_lim = quantity["max"]
+    # log = np.logical_or(quantity["ylog"], quantity["xlog"])
 
-    ax = x_vs_y(x, y, xlabel, ylabel)
+    mask1 = np.logical_and(x>min_lim, y>min_lim)
+    mask2 = np.logical_and(x<max_lim, y<max_lim)
+    mask = np.logical_and(mask1, mask2)
 
-    ax.set_xlim(min_lim, max_lim)
-    ax.set_ylim(min_lim, max_lim)
+    x = x.loc[mask]
+    y = y.loc[mask]
 
-    ax.plot([min_lim, max_lim], [min_lim, max_lim], ls="dashed", c="black")
+    ax = hist_2d(x, y, xlabel, ylabel, bins, log=log)
 
-    if quantity["xlog"]:
-        ax.set_xscale("log")
-    if quantity["ylog"]:
-        ax.set_yscale("log")
-    
+    # ax = x_vs_y(x, y, xlabel, ylabel)
+    # ax.plot([min_lim, max_lim], [min_lim, max_lim], ls="dashed", c="black")
+
     plt.savefig(os.path.join(versus_output_path, f"versus_{col}.png"))
     plt.close()
 
