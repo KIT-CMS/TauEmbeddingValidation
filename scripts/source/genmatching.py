@@ -138,17 +138,19 @@ def calculate_dr(df, mode, filter=None, df2=None):
             master_eta = "Electron_eta"
             master_phi = "Electron_phi"
             master_pt = "Electron_pt"
-            comp_phi = "Electron_cp_phi"
-            comp_eta = "Electron_cp_eta"
-            comp_pt = "Electron_cp_pt"
+            comp_phi = "Electron_phi"
+            comp_eta = "Electron_eta"
+            comp_pt = "Electron_pt"
         elif mode == "photon_all":
             master_eta = "Photon_eta"
             master_phi = "Photon_phi"
             master_pt = "Photon_pt"
-            comp_phi = "Photon_cp_phi"
-            comp_eta = "Photon_cp_eta"
-            comp_pt = "Photon_cp_pt"
-            
+            comp_phi = "Photon_phi"
+            comp_eta = "Photon_eta"
+            comp_pt = "Photon_pt"
+        
+        special_cases = ["dr", "pt_ratio", "LM_pt", "TM_pt"]
+
         for n_m in range(1, n_comp+1):
             if mode == "filter":
                 eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}"], "eta_")
@@ -169,7 +171,7 @@ def calculate_dr(df, mode, filter=None, df2=None):
                     min_val = f["min"]
                     max_val = f["max"]
                     #filter on dr and pt ratio have to be treated separately because they are no nanoaod columns
-                    if basename != "dr" and basename != "pt_ratio":#in this case the filter is applied on existing columns from df
+                    if basename not in special_cases:#in this case the filter is applied on existing columns from df
                         mask1 = df[f"{basename}_{n_m}"] < min_val 
                         mask2 = df[f"{basename}_{n_m}"] > max_val 
                         mask = np.logical_or(mask1, mask2)
@@ -183,6 +185,16 @@ def calculate_dr(df, mode, filter=None, df2=None):
                         pt_ratio = df[master_pt]/ df[f"{comp_pt}_{n_m}"]
                         mask1 = pt_ratio < min_val
                         mask2 = pt_ratio > max_val
+                        mask = np.logical_or(mask1, mask2)
+                        dr_temp[mask] = np.nan
+                    elif basename == "LM_pt" and n_target==1:
+                        mask1 = df[f"Muon_pt_{n_m}"] < min_val
+                        mask2 = df[f"Muon_pt_{n_m}"] > max_val
+                        mask = np.logical_or(mask1, mask2)
+                        dr_temp[mask] = np.nan
+                    elif basename == "TM_pt" and n_target==2:
+                        mask1 = df[f"Muon_pt_{n_m}"] < min_val
+                        mask2 = df[f"Muon_pt_{n_m}"] > max_val
                         mask = np.logical_or(mask1, mask2)
                         dr_temp[mask] = np.nan
             dr_arr[:, n-1, n_m-1] = dr_temp
@@ -526,7 +538,7 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
 
     # print(np.sum(np.isnan(data_unmatched.values)), np.sum(~np.isnan(data_unmatched.values)))
     # print(data_unmatched.columns)
-    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
-    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
+    data_unmatched = compactify_objects(data_unmatched, basenames, n_data+1)
+    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb+1)
     # print(data_unmatched.columns)
     return data_unmatched, emb_unmatched
