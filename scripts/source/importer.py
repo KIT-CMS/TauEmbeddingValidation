@@ -256,14 +256,10 @@ def compactify_objects(df, basenames, n):
         non_nans = row[~np.isnan(row)]
         return np.concatenate([non_nans, [np.nan] * (len(row) - len(non_nans))])
 
-    q_length = []#array for applying a short consistency check
-
     for q in basenames:
 
-        q_l = []#will contain the lengths of the single quantitiy columns (q_1, q_2...)
-        
         q_cols = [f'{q}_{i}' for i in range(1, n+1)]#list of all relevant columns of the quantity
-        # q_cols2 = q_cols.copy()
+        q_cols2 = q_cols.copy()
 
         subset = df[q_cols]#
         q_array = subset.values #2d array of the values columns of the dataframe belonging to a certain quantity
@@ -276,24 +272,31 @@ def compactify_objects(df, basenames, n):
             l = np.sum(~np.isnan(subarray))#counting not nan entries
             if l > 0:    
                 df.loc[:, col] = subarray#setting array into column if there is data available
-                q_l.append(l)#tracking length
             else:
                 df = df.drop(columns=[col])#removing column if not
-                # q_cols2.remove(col)
+                q_cols2.remove(col)
 
-        # #renaming columns so that any not nan columns after removed columns are labelled orderly
-        # col_mapper = {}
-        # for num, col in enumerate(q_cols2):
-        #     col_mapper[col] = f"{q}_{num+1}"
+        #renaming columns so that any not nan columns after removed columns are labelled orderly
+        col_mapper = {}
+        # print(q_cols2)
+        for num, col in enumerate(q_cols2):
+            col_mapper[col] = f"{q}_{num+1}"
+        # print(col_mapper)
+        df = df.rename(columns=col_mapper)
 
-        # df = df.rename(columns=col_mapper)
+    remaining_length = get_n_occurence(df, basenames[0])
+    # print(remaining_length)
+
+    for num in range(1, remaining_length+1):
+        bn_list = [f"{bn}_{num}" for bn in basenames]
+        lengths = [np.sum(df[bn].notna()) for bn in bn_list]
+
+        for n in range(len(basenames)-1):
+            if lengths[n] != lengths[n+1]:
+                print(bn_list)
+                print(lengths)
+                raise AssertionError
         
-        q_length.append(q_l)#adding length array
-
-    #now all columns with number n must have the same length (eta_1, phi_1...) (assuming assert_object_validity has been called before)
-    for num in range(len(q_length[0])):#number of particles
-        for mun in range(len(q_length)-1):#number of quantities
-            assert q_length[mun][num] == q_length[mun+1][num], "Compactification failed"
 
     return df  
 

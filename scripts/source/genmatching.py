@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 from source.helper import subtract_columns, get_n_occurence
-from source.importer import compactify_objects, get_jet_basenames, get_muon_basenames
+from source.importer import compactify_objects, get_jet_basenames, get_muon_basenames, get_electron_basenames, get_photon_basenames
 
 
 
@@ -234,6 +234,7 @@ def apply_genmatching(dr_arr, df, mode, purge=False):
         phi_target_2 = "TM_phi"
         m_target_1 = "LM_m"
         m_target_2 = "TM_m"
+        # basenames = get_muon_basenames()
     elif mode == "jet":
         pt_source = "Jet_pt"
         eta_source = "Jet_eta"
@@ -247,6 +248,7 @@ def apply_genmatching(dr_arr, df, mode, purge=False):
         phi_target_2 = "TJ_phi"
         m_target_1 = "LJ_m"
         m_target_2 = "TJ_m"
+        # basenames = get_jet_basenames()
     elif mode == "electron":
         pt_source = "Electron_pt"
         eta_source = "Electron_eta"
@@ -260,6 +262,7 @@ def apply_genmatching(dr_arr, df, mode, purge=False):
         phi_target_2 = "TE_phi"
         m_target_1 = "LE_m"
         m_target_2 = "TE_m"
+        # basenames = get_electron_basenames()
     elif mode == "photon":
         pt_source = "Photon_pt"
         eta_source = "Photon_eta"
@@ -273,6 +276,7 @@ def apply_genmatching(dr_arr, df, mode, purge=False):
         phi_target_2 = "TP_phi"
         # m_target_1 = "LP_m"
         # m_target_2 = "TP_m"
+        # basenames = get_photon_basenames()
     else:
         raise ValueError("invalid mode selected")
     
@@ -327,10 +331,9 @@ def apply_genmatching(dr_arr, df, mode, purge=False):
             muon_best_fit[n_event, 0] = muon1_id
             dr_min[n_event, 0] = distances2[0, muon1_id]
 
-            if purge:
-                event[f"{pt_source}_{muon1_id+1}"] = np.nan
-                event[f"{eta_source}_{muon1_id+1}"] = np.nan
-                event[f"{phi_source}_{muon1_id+1}"] = np.nan
+            # if purge:
+            #     col_list = [f"{bn}_{muon1_id+1}" for bn in basenames]
+            #     df.loc[n_event, col_list] = np.nan
         else:
             lm_pt[n_event] = np.nan
             lm_eta[n_event] = np.nan
@@ -350,10 +353,9 @@ def apply_genmatching(dr_arr, df, mode, purge=False):
             muon_best_fit[n_event, 1] = muon2_id
             dr_min[n_event, 1] = distances2[1, muon2_id]
 
-            if purge:
-                event[f"{pt_source}_{muon2_id+1}"] = np.nan
-                event[f"{eta_source}_{muon2_id+1}"] = np.nan
-                event[f"{phi_source}_{muon2_id+1}"] = np.nan
+            # if purge:
+            #     col_list = [f"{bn}_{muon2_id+1}" for bn in basenames]
+            #     df.loc[n_event, col_list] = np.nan
         else:
             tm_pt[n_event] = np.nan
             tm_eta[n_event] = np.nan
@@ -407,14 +409,13 @@ def get_closest_muon_data(dr_arr):
 def remove_muon_jets(df, dr_arr, cut):
     # removes those jets that are closer than "value" to a muon
 
+    basenames = get_jet_basenames()
     for n_j in range(dr_arr.shape[1]):
         for n_m in range(dr_arr.shape[2]):
             subset = dr_arr[:,n_j,n_m]
             mask = subset<cut
-            df.loc[mask, f"Jet_eta_{n_j+1}"] = np.nan
-            df.loc[mask, f"Jet_m_{n_j+1}"] = np.nan
-            df.loc[mask, f"Jet_phi_{n_j+1}"] = np.nan
-            df.loc[mask, f"Jet_pt_{n_j+1}"] = np.nan
+            for bn in basenames:
+                df.loc[mask, f"{bn}_{n_j+1}"] = np.nan
 
     # mask = dr_arr[:,0,0] < cut
     # mask2 = dr_arr[:,0,1] < cut
@@ -423,6 +424,42 @@ def remove_muon_jets(df, dr_arr, cut):
     # df = df.loc[mask]
     
     return df
+
+def remove_zmumu_candidates(df, dr_arr, cut):
+    # removes those jets that are closer than "value" to a muon
+    basenames = get_muon_basenames()
+    for n_j in range(dr_arr.shape[1]):
+        for n_m in range(dr_arr.shape[2]):
+            subset = dr_arr[:,n_j,n_m]
+            mask = subset<cut
+            for bn in basenames:
+                df.loc[mask, f"{bn}_{n_j+1}"] = np.nan
+
+    # mask = dr_arr[:,0,0] < cut
+    # mask2 = dr_arr[:,0,1] < cut
+    # mask = np.logical_or(mask, mask2)
+
+    # df = df.loc[mask]
+    
+    return df
+
+
+# print(len(data_df), len(emb_df))# def remove_obj(df, ids, basenames):
+#     assert ids.shape[1] == 2
+#     ids += 1
+#     for event in range(ids.shape[0]):
+#         temp1 = ids[event,0]
+#         temp2 = ids[event,1]
+#         if ~np.isnan(temp1):
+#             temp1 = int(temp1)
+#             col_list = [f"{bn}_{temp1}" for bn in basenames]
+#             df.loc[event, col_list] = np.nan
+#         if ~np.isnan(temp2):
+#             temp2 = int(temp2)
+#             col_list = [f"{bn}_{temp2}" for bn in basenames]
+#             df.loc[event, col_list] = np.nan
+
+#     return df
 
 def remove_non_muon_jets(df, dr_arr, cut):
     # leaves only muon jets
@@ -489,7 +526,7 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         eta_cols_data = [f"Jet_eta_{n}" for n in range(1,n_data+1)]
         phi_cols_emb = [f"Jet_phi_{n}" for n in range(1,n_emb+1)]
         phi_cols_data = [f"Jet_phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["Jet_pt", "Jet_eta", "Jet_phi"]
+        basenames = ["Jet_eta", "Jet_phi", "Jet_pt"]
     elif mode == "muon_all":
         n_emb = get_n_occurence(emb_df, "Muon_eta_")
         n_data = get_n_occurence(data_df, "Muon_eta_")
@@ -499,7 +536,7 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         eta_cols_data = [f"Muon_eta_{n}" for n in range(1,n_data+1)]
         phi_cols_emb = [f"Muon_phi_{n}" for n in range(1,n_emb+1)]
         phi_cols_data = [f"Muon_phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["Muon_pt", "Muon_eta", "Muon_phi"]
+        basenames = ["Muon_eta", "Muon_phi", "Muon_pt"]
     elif mode == "electron_all":
         n_emb = get_n_occurence(emb_df, "Electron_eta_")
         n_data = get_n_occurence(data_df, "Electron_eta_")
@@ -509,7 +546,7 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         eta_cols_data = [f"Electron_eta_{n}" for n in range(1,n_data+1)]
         phi_cols_emb = [f"Electron_phi_{n}" for n in range(1,n_emb+1)]
         phi_cols_data = [f"Electron_phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["Electron_pt", "Electron_eta", "Electron_phi"]
+        basenames = ["Electron_eta", "Electron_phi", "Electron_pt"]
     elif mode == "photon_all":
         n_emb = get_n_occurence(emb_df, "Photon_eta_")
         n_data = get_n_occurence(data_df, "Photon_eta_")
@@ -519,7 +556,7 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         eta_cols_data = [f"Photon_eta_{n}" for n in range(1,n_data+1)]
         phi_cols_emb = [f"Photon_phi_{n}" for n in range(1,n_emb+1)]
         phi_cols_data = [f"Photon_phi_{n}" for n in range(1,n_data+1)]
-        basenames = ["Photon_pt", "Photon_eta", "Photon_phi"]
+        basenames = ["Photon_eta", "Photon_phi", "Photon_pt"]
     else:
         raise ValueError("Invalid mode")
     
@@ -534,20 +571,20 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
         while (~np.isnan(subset)).sum() > 0:#only proceeding if there matches
             with np.errstate(all="ignore"):   # suppress warnings
                 result = np.nanargmin(subset)   #finds the minimum
-                n_emb, n_data = np.unravel_index(result, subset.shape)#converts the number into the array index
+                n_e, n_d = np.unravel_index(result, subset.shape)#converts the number into the array index
             #removing muons from dataset
             for bn in basenames:
-                data_unmatched.loc[n_event, f"{bn}_{n_data+1}"] = np.nan
-                emb_unmatched.loc[n_event, f"{bn}_{n_emb+1}"] = np.nan
+                data_unmatched.loc[n_event, f"{bn}_{n_d+1}"] = np.nan
+                emb_unmatched.loc[n_event, f"{bn}_{n_e+1}"] = np.nan
             # removing all entries along an axis in distance array so that the muons cant be matched twice
-            subset[n_emb, :] = np.nan
-            subset[:, n_data] = np.nan
+            subset[n_e, :] = np.nan
+            subset[:, n_d] = np.nan
             
 
 
     # print(np.sum(np.isnan(data_unmatched.values)), np.sum(~np.isnan(data_unmatched.values)))
     # print(data_unmatched.columns)
-    data_unmatched = compactify_objects(data_unmatched, basenames, n_data+1)
-    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb+1)
+    data_unmatched = compactify_objects(data_unmatched, basenames, n_data)
+    emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
     # print(data_unmatched.columns)
     return data_unmatched, emb_unmatched
