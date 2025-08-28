@@ -218,7 +218,7 @@ def remove_emb_mu_from_dist(dist, id):
         dist[:, id] = np.nan
     return dist
 
-def apply_genmatching(dr_arr, df, mode):
+def apply_genmatching(dr_arr, df, mode, purge=False):
     #switches data for those entries where an emb muon closer to the original one is present
 
     if mode == "muon":
@@ -326,6 +326,11 @@ def apply_genmatching(dr_arr, df, mode):
                 lm_m[n_event] = event[f"{m_source}_{muon1_id+1}"]
             muon_best_fit[n_event, 0] = muon1_id
             dr_min[n_event, 0] = distances2[0, muon1_id]
+
+            if purge:
+                event[f"{pt_source}_{muon1_id+1}"] = np.nan
+                event[f"{eta_source}_{muon1_id+1}"] = np.nan
+                event[f"{phi_source}_{muon1_id+1}"] = np.nan
         else:
             lm_pt[n_event] = np.nan
             lm_eta[n_event] = np.nan
@@ -344,6 +349,11 @@ def apply_genmatching(dr_arr, df, mode):
                 tm_m[n_event] = event[f"{m_source}_{muon2_id+1}"]
             muon_best_fit[n_event, 1] = muon2_id
             dr_min[n_event, 1] = distances2[1, muon2_id]
+
+            if purge:
+                event[f"{pt_source}_{muon2_id+1}"] = np.nan
+                event[f"{eta_source}_{muon2_id+1}"] = np.nan
+                event[f"{phi_source}_{muon2_id+1}"] = np.nan
         else:
             tm_pt[n_event] = np.nan
             tm_eta[n_event] = np.nan
@@ -516,25 +526,24 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
     data_unmatched = data_df[pt_cols_data + eta_cols_data + phi_cols_data + ["run", "lumi", "event"]].copy(deep=True)
     emb_unmatched = emb_df[pt_cols_emb + eta_cols_emb + phi_cols_emb + ["run", "lumi", "event"]].copy(deep=True)
 
+    
     dr[dr > cut] = np.nan
 
-    temp = ~np.isnan(dr)
-    emb_match = np.any(temp, axis=2)
-    data_match = np.any(temp, axis=1)
-
-    # print(np.sum(data_match))
-
-    # print(np.sum(np.isnan(data_unmatched.values)), np.sum(~np.isnan(data_unmatched.values)))
-
     for n_event in range(dr.shape[0]):
-        for n_emb in range(dr.shape[1]):
-            if emb_match[n_event, n_emb]:
-                for bn in basenames:
-                    emb_unmatched.loc[n_event, f"{bn}_{n_emb+1}"] = np.nan
-        for n_data in range(dr.shape[2]):
-            if data_match[n_event, n_data]:
-                for bn in basenames:
-                    data_unmatched.loc[n_event, f"{bn}_{n_data+1}"] = np.nan
+        subset = dr[n_event, :, :]#this array contains the distances between all obj in data and all in emb
+        while (~np.isnan(subset)).sum() > 0:#only proceeding if there matches
+            with np.errstate(all="ignore"):   # suppress warnings
+                result = np.nanargmin(subset)   #finds the minimum
+                n_emb, n_data = np.unravel_index(result, subset.shape)#converts the number into the array index
+            #removing muons from dataset
+            for bn in basenames:
+                data_unmatched.loc[n_event, f"{bn}_{n_data+1}"] = np.nan
+                emb_unmatched.loc[n_event, f"{bn}_{n_emb+1}"] = np.nan
+            # removing all entries along an axis in distance array so that the muons cant be matched twice
+            subset[n_emb, :] = np.nan
+            subset[:, n_data] = np.nan
+            
+
 
     # print(np.sum(np.isnan(data_unmatched.values)), np.sum(~np.isnan(data_unmatched.values)))
     # print(data_unmatched.columns)
