@@ -428,12 +428,12 @@ def remove_muon_jets(df, dr_arr, cut):
 def remove_zmumu_candidates(df, dr_arr, cut):
     # removes those jets that are closer than "value" to a muon
     basenames = get_muon_basenames()
-    for n_j in range(dr_arr.shape[1]):
+    for n_z in range(dr_arr.shape[1]):
         for n_m in range(dr_arr.shape[2]):
-            subset = dr_arr[:,n_j,n_m]
+            subset = dr_arr[:,n_z,n_m]
             mask = subset<cut
             for bn in basenames:
-                df.loc[mask, f"{bn}_{n_j+1}"] = np.nan
+                df.loc[mask, f"{bn}_{n_m+1}"] = np.nan
 
     # mask = dr_arr[:,0,0] < cut
     # mask2 = dr_arr[:,0,1] < cut
@@ -588,3 +588,31 @@ def find_unmatchable_objects(dr, emb_df, data_df, mode, cut):
     emb_unmatched = compactify_objects(emb_unmatched, basenames, n_emb)
     # print(data_unmatched.columns)
     return data_unmatched, emb_unmatched
+
+
+
+
+def rename_col_set(df, basename, replacement):
+    mapper = {}
+    for column in df.columns:
+        if column.startswith(basename):
+            mapper[column] = column.replace(basename, replacement)
+    df = df.rename(columns=mapper)
+    return df
+
+
+def dist_between_zmumu_unmatch(data_unmatched, emb_unmatched, basename=None):
+
+    if type(basename) != type(None):
+        print(data_unmatched.columns)
+        if basename != "Jet_":
+            data_unmatched = rename_col_set(data_unmatched, basename, "Jet_")
+            emb_unmatched = rename_col_set(emb_unmatched, basename, "Jet_")
+        print(data_unmatched.columns)
+
+    dr_data = calculate_dr(data_unmatched, "filter", filter=None)
+    dr_emb = calculate_dr(emb_unmatched, "filter", filter=None)
+    distances_data = np.nanmin(dr_data, axis=2)#.flatten()
+    distances_emb = np.nanmin(dr_emb, axis=2)#.flatten()
+
+    return distances_data, distances_emb
