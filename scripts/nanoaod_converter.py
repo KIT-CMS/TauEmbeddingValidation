@@ -6,10 +6,11 @@ import pandas as pd
 import numpy as np
 import pathlib
 
-from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n
+from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n, read_event_list
 from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets, remove_nonmatches
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_matching, get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
+
 
 from source.importer import quality_cut, assert_object_validity, compactify_objects, get_jet_basenames, get_muon_basenames, get_electron_basenames
 
@@ -31,9 +32,12 @@ emb_path = "./data/2022_patched_driver/"
 
 data_filenames = "2022G-data_*.root"
 emb_filenames = "2022G-embedding_*.root"
+# selection_file = os.path.join(data_path, "selection.csv")
 
+# output_path = "./output_mvis_selection/data"
 output_path = "./output/data"
 
+# match_plot_path = "./output_mvis_selection/match_plots"
 match_plot_path = "./output/match_plots"
 
 create_plots = True
@@ -108,10 +112,17 @@ emb_files = list(pathlib.Path(emb_path).glob(emb_filenames))
 data_df = nanoaod_to_dataframe(files=data_files, quantities=data_quantities)
 emb_df = nanoaod_to_dataframe(files=emb_files, quantities=emb_quantities)
 
-
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
 
+
 print(f"Data loaded\n\tLength dataset:\t {len(emb_df)} events")
+
+
+# selection_df = read_event_list(selection_file)
+# data_df, selection_df = create_concordant_subsets(data_df, selection_df)
+
+# print(f"Reduced dataset to {len(selection_df)} events")
+
 
 # Creating plots comparing jet / muon object
 # if create_plots:
@@ -169,8 +180,8 @@ jet_filters = [
 # ]
 muon_filters = [
     {"col":"Muon_pt",  "min":8,  "max":None},
-    # {"col":"MuonIsGlobal",  "min":0.5,  "max":None},
     {"col":"MuonIsLoose",  "min":0.5,  "max":None}
+    # {"col":"MuonIsGlobal",  "min":0.5,  "max":None},
     # {"col":"MuonIsMedium",  "min":0.5,  "max":None}
     # {"col":"MuonIsTight",  "min":0.5,  "max":None}
 ]
@@ -252,7 +263,11 @@ dr = calculate_dr(emb_df, "muon", filter=match_filter)
 emb_df, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 
+
 print("Genmatching applied")
+
+# mask = np.logical_and(dr_matched[:,0]<muon_cut, dr_matched[:,1]<muon_cut)
+# emb_df = emb_df.loc[mask]
 
 
 emb_df = require_min_n(emb_df, "LM_eta", 1)
@@ -277,7 +292,9 @@ if create_plots:
     #dr between muon1|2 data and muon1|2 embedding
 
     print("Results of muon matching:")
-    mask_temp = dr_1>muon_cut
+    mask_temp = dr_matched[:,0]<0.01
+    print(mask_temp.sum())
+    mask_temp = dr_matched[:,1]<0.01
     print(mask_temp.sum())
     mask_temp = dr_matched[:,0]>muon_cut
     print(mask_temp.sum())
@@ -324,7 +341,6 @@ print(f"Removed events with m_vis<18. \nLength dataset:\t {len(emb_df)} events")
 ########################################################################################################################################################################
 # Removing muon jets
 ########################################################################################################################################################################
-
 
 
 njet_total_emb = count_n_objects(emb_df, "Jet_eta_")

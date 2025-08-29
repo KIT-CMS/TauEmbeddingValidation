@@ -300,6 +300,11 @@ def compactify_objects(df, basenames, n):
 
     return df  
 
+def read_event_list(path):
+    event_list = pd.read_csv(path)
+
+    return event_list
+
 
 # def transform_ids(df):
 #     # transforms the ids of the muons so that they are exclusive: a tight muon is then no longer also a medium an loose muon but
