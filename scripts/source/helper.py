@@ -4,6 +4,23 @@ import pandas as pd
 import numpy as np
 import vector
 
+def print_stats(n_match, nlone_data, nlone_emb):
+    print("Number of events:                    ", n_match.shape)
+    print("Number of unm. obj. in data:         ", np.sum(nlone_data))
+    print("Number of unm. obj. in emb:          ", np.sum(nlone_emb))
+    print("Number of m. obj. in emb:            ", np.sum(n_match))
+    print("events with no matchable obj.:       ", np.sum(n_match==0))
+    print("events without unmatchable obj. data:", np.sum(nlone_data==0))
+    print("events without unmatchable obj. emb: ", np.sum(nlone_emb==0))
+    print("events with unmatchable obj. data:   ", np.sum(nlone_data>0))
+    print("events with unmatchable obj. emb:    ", np.sum(nlone_emb>0))
+    print("events with error in emb/ data:      ", np.logical_or(nlone_data>0, nlone_emb>0).sum())
+    mask = np.logical_and(nlone_data==0, nlone_emb==0)
+    print("events without error in emb/ data:   ", mask.sum())
+    mask = np.logical_and(mask, n_match>0)
+    print("events w. obj. and w/o unm. obj.:    ", mask.sum())
+
+
 
 def detect_changes(df1, df2, columns:list):
     #compares how many elements in the series object are different between two dfs
