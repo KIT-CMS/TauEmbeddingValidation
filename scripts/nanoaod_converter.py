@@ -11,7 +11,6 @@ from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets
 from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_matching, get_n_occurence, set_working_dir, count_n_objects
 from source.plotting import match_plot, control_plot, nq_comparison
 
-
 from source.importer import quality_cut, assert_object_validity, compactify_objects, get_jet_basenames, get_muon_basenames, get_electron_basenames
 
 ########################################################################################################################################################################
@@ -263,11 +262,7 @@ dr = calculate_dr(emb_df, "muon", filter=match_filter)
 emb_df, muon_id_matched, dr_matched = apply_genmatching(dr.copy(), emb_df_for_matching.copy(deep=True), "muon")
 
 
-
 print("Genmatching applied")
-
-# mask = np.logical_and(dr_matched[:,0]<muon_cut, dr_matched[:,1]<muon_cut)
-# emb_df = emb_df.loc[mask]
 
 
 emb_df = require_min_n(emb_df, "LM_eta", 1)
