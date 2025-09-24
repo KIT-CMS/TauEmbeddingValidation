@@ -31,8 +31,8 @@ def calculate_dr(df, mode, filter=None, df2=None):
         n_target = 2
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "filter":
-        n_comp = 2
-        n_target = get_n_occurence(df, "Jet_eta")
+        n_comp = get_n_occurence(df, "Jet_eta")
+        n_target = 2
         dr_arr = np.full(shape=(len(df), n_target, n_comp), dtype=float, fill_value=np.nan)
     elif mode == "muon_all":
         n_comp = get_n_occurence(df2, "Muon_eta")
@@ -108,17 +108,17 @@ def calculate_dr(df, mode, filter=None, df2=None):
                 master_phi = "TP_phi"
                 master_pt = "TP_pt"
         elif mode=="filter":
-            master_eta = "Jet_eta"
-            master_phi = "Jet_phi"
-            master_pt = "Jet_pt"
+            comp_eta = "Jet_eta"
+            comp_phi = "Jet_phi"
+            comp_pt = "Jet_pt"
             if n == 1:
-                comp_phi = "LM_phi"
-                comp_eta = "LM_eta"
-                comp_pt = "LM_pt"
+                master_phi = "LM_phi"
+                master_eta = "LM_eta"
+                master_pt = "LM_pt"
             elif n == 2:
-                comp_phi = "TM_phi"
-                comp_eta = "TM_eta"
-                comp_pt = "TM_pt"
+                master_phi = "TM_phi"
+                master_eta = "TM_eta"
+                master_pt = "TM_pt"
         # emb auf axis=1, data auf axis=2
         elif mode == "muon_all":
             master_eta = "Muon_eta"
@@ -153,8 +153,8 @@ def calculate_dr(df, mode, filter=None, df2=None):
 
         for n_m in range(1, n_comp+1):
             if mode == "filter":
-                eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df[f"{comp_eta}"], "eta_")
-                phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df[f"{comp_phi}"], "phi_")
+                eta_diff = subtract_columns(df[f"{comp_eta}_{n_m}"], df[f"{master_eta}"], "eta_")
+                phi_diff = subtract_columns(df[f"{comp_phi}_{n_m}"], df[f"{master_phi}"], "phi_")
             elif mode.endswith("_all"):
                 eta_diff = subtract_columns(df[f"{master_eta}_{n}"], df2[f"{comp_eta}_{n_m}"], "eta_")
                 phi_diff = subtract_columns(df[f"{master_phi}_{n}"], df2[f"{comp_phi}_{n_m}"], "phi_")
@@ -406,43 +406,68 @@ def get_closest_muon_data(dr_arr):
     return index, mu_dr
 
 
-def remove_muon_jets(df, dr_arr, cut):
-    # removes those jets that are closer than "value" to a muon
+# def remove_muon_jets(df, dr_arr, cut):
+#     # removes those jets that are closer than "value" to a muon
 
-    basenames = get_jet_basenames()
-    for n_j in range(dr_arr.shape[1]):
-        for n_m in range(dr_arr.shape[2]):
-            subset = dr_arr[:,n_j,n_m]
-            mask = subset<cut
-            for bn in basenames:
-                df.loc[mask, f"{bn}_{n_j+1}"] = np.nan
+#     basenames = get_jet_basenames()
+#     for n_j in range(dr_arr.shape[1]):
+#         for n_m in range(dr_arr.shape[2]):
+#             subset = dr_arr[:,n_j,n_m]
+#             mask = subset<cut
+#             for bn in basenames:
+#                 df.loc[mask, f"{bn}_{n_j+1}"] = np.nan
 
-    # mask = dr_arr[:,0,0] < cut
-    # mask2 = dr_arr[:,0,1] < cut
-    # mask = np.logical_or(mask, mask2)
+#     # mask = dr_arr[:,0,0] < cut
+#     # mask2 = dr_arr[:,0,1] < cut
+#     # mask = np.logical_or(mask, mask2)
 
-    # df = df.loc[mask]
+#     # df = df.loc[mask]
     
-    return df
+#     return df
 
-def remove_zmumu_candidates(df, dr_arr, cut):
+# def remove_zmumu_candidates(df, dr_arr, cut):
+#     # removes those jets that are closer than "value" to a muon
+#     basenames = get_muon_basenames()
+#     for n_z in range(dr_arr.shape[1]):
+#         for n_m in range(dr_arr.shape[2]):
+#             subset = dr_arr[:,n_z,n_m]
+#             mask = subset<cut
+#             for bn in basenames:
+#                 df.loc[mask, f"{bn}_{n_m+1}"] = np.nan
+
+#     # mask = dr_arr[:,0,0] < cut
+#     # mask2 = dr_arr[:,0,1] < cut
+#     # mask = np.logical_or(mask, mask2)
+
+#     # df = df.loc[mask]
+    
+#     return df
+
+def remove_zmumu_candidates(df, distances, cut, mode="all"):
     # removes those jets that are closer than "value" to a muon
     basenames = get_muon_basenames()
-    for n_z in range(dr_arr.shape[1]):
-        for n_m in range(dr_arr.shape[2]):
-            subset = dr_arr[:,n_z,n_m]
-            mask = subset<cut
-            for bn in basenames:
-                df.loc[mask, f"{bn}_{n_m+1}"] = np.nan
+    if mode=="first":
+        dist_min = np.nanmin(distances, axis=1, keepdims=True)
+        distances = np.where(distances==dist_min, distances, np.nan)
+        
+    for n_m in range(distances.shape[1]):
+        mask = distances[:,n_m] < cut
 
-    # mask = dr_arr[:,0,0] < cut
-    # mask2 = dr_arr[:,0,1] < cut
-    # mask = np.logical_or(mask, mask2)
-
-    # df = df.loc[mask]
+        for bn in basenames:
+            df.loc[mask, f"{bn}_{n_m+1}"] = np.nan
     
     return df
 
+def remove_muon_jets(df, distances, cut):
+    # removes those jets that are closer than "value" to a muon
+    basenames = get_jet_basenames()
+    for n_m in range(distances.shape[1]):
+        mask = distances[:,n_m] < cut
+    
+        for bn in basenames:
+            df.loc[mask, f"{bn}_{n_m+1}"] = np.nan
+    
+    return df
 
 # print(len(data_df), len(emb_df))# def remove_obj(df, ids, basenames):
 #     assert ids.shape[1] == 2
@@ -465,11 +490,11 @@ def remove_non_muon_jets(df, dr_arr, cut):
     # leaves only muon jets
     counter = 0
     mask = dr_arr<cut
-    mask = np.any(mask, axis=2)
-
+    mask = ~mask
+    
     for n_j in range(dr_arr.shape[1]):
 
-        subset = ~mask[:,n_j]
+        subset = mask[:,n_j]
 
         df.loc[subset, f"Jet_eta_{n_j+1}"] = np.nan
         df.loc[subset, f"Jet_m_{n_j+1}"] = np.nan
@@ -479,11 +504,6 @@ def remove_non_muon_jets(df, dr_arr, cut):
 
     print(f"removed {counter} jets from {len(df)} events")
 
-    # mask = dr_arr[:,0,0] < cut
-    # mask2 = dr_arr[:,0,1] < cut
-    # mask = np.logical_or(mask, mask2)
-
-    # df = df.loc[mask]
     
     return df
 
@@ -604,15 +624,26 @@ def rename_col_set(df, basename, replacement):
 def dist_between_zmumu_unmatch(data_unmatched, emb_unmatched, basename=None):
 
     if type(basename) != type(None):
-        print(data_unmatched.columns)
+        # print(data_unmatched.columns)
         if basename != "Jet_":
             data_unmatched = rename_col_set(data_unmatched, basename, "Jet_")
             emb_unmatched = rename_col_set(emb_unmatched, basename, "Jet_")
-        print(data_unmatched.columns)
+        # print(data_unmatched.columns)
 
     dr_data = calculate_dr(data_unmatched, "filter", filter=None)
     dr_emb = calculate_dr(emb_unmatched, "filter", filter=None)
-    distances_data = np.nanmin(dr_data, axis=2)#.flatten()
-    distances_emb = np.nanmin(dr_emb, axis=2)#.flatten()
+    distances_data = np.nanmin(dr_data, axis=1)#.flatten()
+    distances_emb = np.nanmin(dr_emb, axis=1)#.flatten()
 
     return distances_data, distances_emb
+
+
+def get_sub_df(df, basename):
+    col_list = []
+    for col in df.columns:
+        if col.startswith(basename):
+            col_list.append(col)
+    
+    subdf = df.loc[:, col_list]
+
+    return subdf
