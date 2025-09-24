@@ -60,7 +60,7 @@ def control_plot(data_col, emb_col, bins, title, dy=None):
 
     print("Rel. value", np.nanmean(rel_diff), np.nanstd(rel_diff))
     print("Rel. dev", np.nanmin(rel_diff), np.nanmax(rel_diff))
-
+    
     ax_temp.errorbar(bins_data_center, rel_diff, xerr=np.diff(edges)/2, yerr=rel_diff_error, label="observed", c="black", fmt="o", linestyle="none", markersize=8)
     ax_temp.bar(bins_data_center, 2*rel_diff_error, width=np.diff(edges), bottom=1-rel_diff_error, color="grey", alpha=0.5, edgecolor="none")
 
@@ -197,7 +197,13 @@ def hist_2d(x, y, xlabel, ylabel, bins, log):
     fig, ax = plt.subplots(nrows=1, ncols=1)
     fig.set_figheight(14)
     fig.set_figwidth(14)
-    
+
+    min_lim = np.amin(bins)
+    max_lim = np.amax(bins)
+
+    ax.plot([min_lim, max_lim], [min_lim, max_lim], ls="solid", c="grey", linewidth=4, alpha=0.4)
+
+
     if log:
         # max = np.amax([np.amax(x), np.amax(y)])
         # norm = LogNorm(vmin=0, vmax=max)
@@ -246,6 +252,7 @@ def nq_comparison(q_dict, bins, title, data=None):
         ax.errorbar(bins_data_center, data_hist, xerr=np.diff(bins)/2, yerr=data_errors, label="Data", c="black", fmt="o", linestyle="none", markersize=8)
 
     ax.set_xlabel(title)
+    ax.set_ylabel(r"N$_\text{events}$")
     #adding title, labels and legend to upper plot
     hep.cms.label("Private work (data/simulation)", data=True, loc=0, year="2022G", com=13.6)#, lumi=59.8
     plt.subplots_adjust(hspace=0.05)

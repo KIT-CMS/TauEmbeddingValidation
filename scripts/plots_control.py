@@ -7,20 +7,22 @@ import numpy as np
 
 from source.plotting import control_plot, nq_comparison
 from source.importer import initialize_dir
-from source.helper import verify_events, set_working_dir
+from source.helper import verify_events, set_working_dir, set_plt_fonts
 
 
 ########################################################################################################################################################################
 # Paths for input and output
 ########################################################################################################################################################################
 
-hdf_path = "./output/data/converted_nanoaod.h5"
-# comparison_output_path = "./output/control_plots/comparison"
-control_output_path = "./output/control_plots/"
+hdf_path = "./output_nofsr_nounmobj/data/converted_nanoaod.h5"
+control_output_path = "./output_nofsr_nounmobj/control_plots/"
+# hdf_path = "./output_nounmobj/data/converted_nanoaod.h5"
+# control_output_path = "./output_nounmobj/control_plots/"
 
 initialize_dir(control_output_path, ["default", "custom"])
 
 set_working_dir()
+set_plt_fonts()
 
 print("Initialized directories")
 
@@ -32,7 +34,7 @@ nbins = 35
 
 plotting_instructions = [
     {"col":"LJ_eta",           
-        "bins":np.linspace(-5, 5, nbins),          
+        "bins":np.linspace(-4, 4, nbins),          
         "title":r"Leading jet $\eta$",                 
         "dy":0.5,
         "ylog":True,    
@@ -51,7 +53,7 @@ plotting_instructions = [
         "xlog":False}, 
     {"col":"LJ_pt",           
         "bins":np.linspace(0, 250, nbins),      
-        "title":r"Leading jet $p_\text{T}$",              
+        "title":r"Leading jet $p_\text{T}$/ GeV",              
         "dy":0.75,
         "ylog":True,    
         "xlog":False}, 
@@ -68,7 +70,7 @@ plotting_instructions = [
         "ylog":True,    
         "xlog":False},
     {"col":"LM_pt",              
-        "bins":np.linspace(0, 200, nbins),         
+        "bins":np.linspace(0, 250, nbins),         
         "title":r"$p_\text{T, µ1}$/ GeV",  
         "dy":0.75,
         "ylog":True,    
@@ -87,13 +89,13 @@ plotting_instructions = [
         "xlog":False},
     {"col":"PuppiMET_phi",      
         "bins":np.linspace(-3.5, 3.5, nbins),      
-        "title":r"Missing $p_{T, \phi}$",           
+        "title":r"Angle $\phi$ of missing momentum",           
         "dy":0.75,
         "ylog":True,    
         "xlog":False},
     {"col":"PuppiMET_pt",       
         "bins":np.linspace(0, 150, nbins),         
-        "title":r"Missing $p_{T}$ / GeV",           
+        "title":r"Missing $p_{T}$/ GeV",           
         "dy":0.75,
         "ylog":True,    
         "xlog":False},
@@ -116,8 +118,8 @@ plotting_instructions = [
         "ylog":True,    
         "xlog":False}, 
     {"col":"TJ_pt",           
-        "bins":np.linspace(0, 200, nbins),      
-        "title":r"Subleading jet $p_\text{T}$",              
+        "bins":np.linspace(0, 250, nbins),      
+        "title":r"Subleading jet $p_\text{T}$/ GeV",              
         "dy":0.75,
         "ylog":True,    
         "xlog":False},  

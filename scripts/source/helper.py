@@ -3,6 +3,22 @@ import os
 import pandas as pd
 import numpy as np
 import vector
+import matplotlib.pyplot as plt
+
+def set_plt_fonts():
+    SMALL_SIZE = 30
+    MEDIUM_SIZE = 35
+    # BIGGER_SIZE = 12
+
+    # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+    # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+
 
 def print_stats(n_match, nlone_data, nlone_emb):
     print("Number of events:                    ", n_match.shape)
@@ -18,8 +34,22 @@ def print_stats(n_match, nlone_data, nlone_emb):
     mask = np.logical_and(nlone_data==0, nlone_emb==0)
     print("events without error in emb/ data:   ", mask.sum())
     mask = np.logical_and(mask, n_match>0)
-    print("events w. obj. and w/o unm. obj.:    ", mask.sum())
+    print("events w. obj. and w/o unm. obj.:    ", mask.sum(), "\n\n")
 
+def print_zmumu_stats(dist_data, dist_emb, cut):
+
+    mask = dist_data<cut
+    print(f"Number of data objects left from cut: ", mask.sum())
+    print(f"Number of events left from cut:       ", mask.any(axis=1).sum())
+    mask = dist_data>cut
+    print(f"Number of data objects right from cut:", mask.sum())
+    print(f"Number of events right from cut:       ", mask.any(axis=1).sum())
+    mask = dist_emb<cut
+    print(f"Number of emb objects left from cut:  ", mask.sum())
+    print(f"Number of events left from cut:       ", mask.any(axis=1).sum())
+    mask = dist_emb>cut
+    print(f"Number of emb objects right from cut: ", mask.sum())
+    print(f"Number of events right from cut:       ", mask.any(axis=1).sum(), "\n\n")
 
 
 def detect_changes(df1, df2, columns:list):
