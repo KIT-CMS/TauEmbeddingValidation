@@ -7,8 +7,8 @@ import numpy as np
 import pathlib
 
 from source.importer import nanoaod_to_dataframe, get_z_m_pt, initialize_dir, require_min_n, read_event_list
-from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets, remove_nonmatches
-from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_matching, get_n_occurence, set_working_dir, count_n_objects
+from source.genmatching import calculate_dr, apply_genmatching, remove_muon_jets, remove_nonmatches, dist_between_zmumu_unmatch, remove_non_muon_jets
+from source.helper import verify_events, create_concordant_subsets, copy_columns_from_to, get_matching_df, subtract_columns, prepare_matching, get_n_occurence, set_working_dir, count_n_objects, set_plt_fonts
 from source.plotting import match_plot, control_plot, nq_comparison
 
 from source.importer import quality_cut, assert_object_validity, compactify_objects, get_jet_basenames, get_muon_basenames, get_electron_basenames
@@ -18,32 +18,33 @@ from source.importer import quality_cut, assert_object_validity, compactify_obje
 ########################################################################################################################################################################
 
 #unpatched data
-# data_path = "./data/2022G-nanoaod_gen/"
-# emb_path = "./data/2022G-nanoaod_gen/"
 
 #patched data (but same length as unpatched)
 # data_path = "./data/2022_patched_driver_reduced/"
 # emb_path = "./data/2022_patched_driver_reduced/"
 
 #patched data (but full length)
-data_path = "./data/2022_patched_driver/"
-emb_path = "./data/2022_patched_driver/"
+# data_path = "./data/2022G-nanoaod_gen/"
+# emb_path = "./data/2022G-nanoaod_gen/"
+# data_path = "./data/2022_patched_driver/"
+# emb_path = "./data/2022_patched_driver/"
+data_path = "./data/2022_nofsr/"
+emb_path = "./data/2022_nofsr/"
 
 data_filenames = "2022G-data_*.root"
 emb_filenames = "2022G-embedding_*.root"
 # selection_file = os.path.join(data_path, "selection.csv")
 
-# output_path = "./output_mvis_selection/data"
-output_path = "./output/data"
+output_path = "./output_nofsr_onlyzmumu/data"
 
-# match_plot_path = "./output_mvis_selection/match_plots"
-match_plot_path = "./output/match_plots"
+match_plot_path = "./output_nofsr_onlyzmumu/match_plots"
 
 create_plots = True
 jet_cut = 0.4
-muon_cut = 0.3
+muon_cut = 0.1
 
 set_working_dir()
+set_plt_fonts()
 
 initialize_dir(match_plot_path)
 
@@ -92,6 +93,11 @@ selection_q = [
     {"key":"TauEmbedding_etaTrailingMuon",		    "target":"TM_eta",		"expand":False },
     {"key":"TauEmbedding_massLeadingMuon",		    "target":"LM_m",		"expand":False },
     {"key":"TauEmbedding_massTrailingMuon",		    "target":"TM_m",		"expand":False },
+    {"key":"nGenPart",		                        "target":"nGenPart",    "expand":False },
+    # {"key":"GenPart_pdgId",		                    "target":"GenPart_Id",	"expand":True },
+    # {"key":"GenPart_eta",		                    "target":"GenPart_eta",	"expand":True },
+    # {"key":"GenPart_phi",		                    "target":"GenPart_phi",	"expand":True },
+    # {"key":"GenPart_pt",		                    "target":"GenPart_pt",	"expand":True },
 ]
 
 emb_quantities = data_quantities.copy()
@@ -287,24 +293,30 @@ if create_plots:
     #dr between muon1|2 data and muon1|2 embedding
 
     print("Results of muon matching:")
-    mask_temp = dr_matched[:,0]<0.01
-    print(mask_temp.sum())
-    mask_temp = dr_matched[:,1]<0.01
-    print(mask_temp.sum())
-    mask_temp = dr_matched[:,0]>muon_cut
-    print(mask_temp.sum())
-    mask_temp = dr_matched[:,1]>muon_cut
-    print(mask_temp.sum())
-    mask_temp = np.logical_or(dr_matched[:,0]>muon_cut, dr_matched[:,1]>muon_cut)
-    print(mask_temp.sum())
+
+    # mask_temp = dr_matched[:,0]<muon_cut
+    # print(mask_temp.sum())
+    # mask_temp = dr_matched[:,1]<muon_cut
+    # print(mask_temp.sum())
+    # mask_temp = np.logical_and(dr_matched[:,0]<muon_cut, dr_matched[:,1]<muon_cut)
+    # print(mask_temp.sum())
+
+    # mask_temp = dr_matched[:,0]>muon_cut
+    # print(mask_temp.sum())
+    # mask_temp = dr_matched[:,1]>muon_cut
+    # print(mask_temp.sum())
+    # mask_temp = np.logical_or(dr_matched[:,0]>muon_cut, dr_matched[:,1]>muon_cut)
+    # print(mask_temp.sum())
 
     ax = nq_comparison({"Leading µ":dr_1, "Subleading µ":dr_2}, 30, r"$\Delta R_\text{µ, unmatched}$           ")
     ax.set_yscale("log")
+    ax.vlines(muon_cut, ax.get_ylim()[0], ax.get_ylim()[1], color="black", ls="dashed", linewidth=2)
     plt.savefig(os.path.join(match_plot_path, f"muon_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
     ax = nq_comparison({"Leading µ":dr_matched[:,0], "Subleading µ":dr_matched[:,1]}, 30, r"$\Delta R_\text{µ, matched}$           ")
+    ax.vlines(muon_cut, ax.get_ylim()[0], ax.get_ylim()[1], color="black", ls="dashed", linewidth=2)
     ax.set_yscale("log")
     plt.savefig(os.path.join(match_plot_path, f"muon_dr_matched.png"))
     plt.close()
@@ -341,10 +353,14 @@ print(f"Removed events with m_vis<18. \nLength dataset:\t {len(emb_df)} events")
 njet_total_emb = count_n_objects(emb_df, "Jet_eta_")
 njet_total_data = count_n_objects(data_df, "Jet_eta_")
 
-dr1 = calculate_dr(data_df, "filter", filter=None)
-data_df = remove_muon_jets(data_df, dr1, jet_cut)
-dr2 = calculate_dr(emb_df, "filter", filter=None)
-emb_df = remove_muon_jets(emb_df, dr2, jet_cut)
+emb_df_copy = copy_columns_from_to(data_df, emb_df.copy(deep=True), ["LM_pt", "LM_eta", "LM_phi", "TM_pt", "TM_eta", "TM_phi"])
+
+distances_data, distances_emb = dist_between_zmumu_unmatch(data_df.copy(deep=True), emb_df_copy)
+
+# data_df = remove_non_muon_jets(data_df, distances_data, jet_cut)
+# emb_df = remove_non_muon_jets(emb_df, distances_emb, jet_cut)
+data_df = remove_muon_jets(data_df, distances_data, jet_cut)
+emb_df = remove_muon_jets(emb_df, distances_emb, jet_cut)
 
 njet_cleaned_emb = count_n_objects(emb_df, "Jet_eta_")
 njet_cleaned_data = count_n_objects(data_df, "Jet_eta_")
@@ -365,8 +381,6 @@ emb_df = compactify_objects(emb_df, get_jet_basenames(), get_n_occurence(emb_df,
 # emb_df = compactify_objects(emb_df, get_muon_basenames(), get_n_occurence(emb_df, "eta_"))
 
 data_df, emb_df = create_concordant_subsets(data_df, emb_df)
-
-# print(len(data_df), len(emb_df))
 
 # if create_plots:
 #     # Creating plots indicating performance of muon removal
@@ -453,18 +467,28 @@ if create_plots:
     deta_2 = subtract_columns(emb_df["Jet_eta_2"], data_df["TJ_eta"], "eta_2")
     dr_2 = np.sqrt(np.square(dphi_2) + np.square(deta_2))
 
-    print(f"jet_unmatch_dr: {jet_cut}", np.sum(dr_1>jet_cut), np.sum(~np.isnan(dr_1)))
-    print(f"jet_unmatch_dr2: {jet_cut}", np.sum(dr_2>jet_cut), np.sum(~np.isnan(dr_2)))
+
+    # print(f"jet_unmatch_dr: {jet_cut}", np.sum(dr_1>jet_cut), np.sum(~np.isnan(dr_1)))
+    # print(f"jet_unmatch_dr2: {jet_cut}", np.sum(dr_2>jet_cut), np.sum(~np.isnan(dr_2)))
+    # print(f"jet_unmatch_dr: {jet_cut}", np.sum(jet_dr_matched[:,0]>jet_cut), np.sum(jet_dr_matched[:,0]<jet_cut), np.sum(~np.isnan(jet_dr_matched[:,0])))
+    # print(f"jet_unmatch_dr2: {jet_cut}", np.sum(jet_dr_matched[:,1]>jet_cut), np.sum(jet_dr_matched[:,1]<jet_cut), np.sum(~np.isnan(jet_dr_matched[:,1])))
+
+    # print(f"jet_unmatch_dr: {0.1}", np.sum(jet_dr_matched[:,0]>0.1), np.sum(jet_dr_matched[:,0]<0.1), np.sum(~np.isnan(jet_dr_matched[:,0])))
+    # print(f"jet_unmatch_dr2: {0.1}", np.sum(jet_dr_matched[:,1]>0.1), np.sum(jet_dr_matched[:,1]<0.1), np.sum(~np.isnan(jet_dr_matched[:,1])))
+
+    # print(data_df.loc[jet_dr_matched[:,0]>jet_cut][["lumi", "event", "LJ_pt"]])
 
     #dr between muon1|2 data and muon1|2 embedding
     ax = nq_comparison({"Leading jet":dr_1, "Subleading jet":dr_2}, 30, r"$\Delta R_\text{Jet, unmatched}$")
     ax.set_yscale("log")
+    ax.vlines(jet_cut, ax.get_ylim()[0], ax.get_ylim()[1], color="black", ls="dashed", linewidth=2)
     plt.savefig(os.path.join(match_plot_path, f"jet_dr_unmatched.png"))
     plt.close()
 
     #dr between l|m muon data and l|m muon embedding
     ax = nq_comparison({"Leading jet":jet_dr_matched[:,0], "Subleading jet":jet_dr_matched[:,1]}, 30, r"$\Delta R_\text{Jet, matched}$")
     ax.set_yscale("log")
+    ax.vlines(jet_cut, ax.get_ylim()[0], ax.get_ylim()[1], color="black", ls="dashed", linewidth=2)
     plt.savefig(os.path.join(match_plot_path, f"jet_dr_matched.png"))
     plt.close()
 
